@@ -1,147 +1,154 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Reservar cita</title>
+<meta charset="UTF-8">
+<title>Reservar cita</title>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #333;
-    }
+<style>
+body {
+    font-family: Arial;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+}
 
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      width: 350px;
-      text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
+.container {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 320px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
 
-    h1 {
-      margin-bottom: 20px;
-    }
+h2 {
+    margin-bottom: 20px;
+}
 
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
+input, button {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
 
-    button {
-      background: #667eea;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-    }
+button {
+    background: #667eea;
+    color: white;
+    cursor: pointer;
+    border: none;
+}
 
-    button:hover {
-      background: #5a67d8;
-    }
+button:hover {
+    background: #5a67d8;
+}
 
-    .hora {
-      margin: 5px;
-      padding: 8px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+#horas button {
+    margin: 5px;
+    width: auto;
+}
 
-    .libre {
-      background: #c6f6d5;
-    }
+.libre {
+    background: #48bb78;
+}
 
-    .ocupado {
-      background: #fed7d7;
-      cursor: not-allowed;
-    }
-
-    #mensaje {
-      margin-top: 10px;
-      font-weight: bold;
-    }
-
-  </style>
+.ocupado {
+    background: #e53e3e;
+}
+</style>
 </head>
 
 <body>
 
-  <div class="container">
-    <h1>Reservar cita</h1>
+<div class="container">
+    <h2>Reservar cita</h2>
 
     <input type="date" id="fecha">
-    <input type="text" id="cliente" placeholder="Tu nombre">
+    <input type="text" id="nombre" placeholder="Tu nombre">
 
     <button onclick="verDisponibilidad()">Ver disponibilidad</button>
 
     <div id="horas"></div>
 
-    <div id="mensaje"></div>
-  </div>
+    <p id="mensaje"></p>
+</div>
 
 <script>
+
 const API = "https://citas-backend-d04e.onrender.com";
 
+// 🔍 VER DISPONIBILIDAD
 async function verDisponibilidad() {
-  const fecha = document.getElementById("fecha").value;
-  const contenedor = document.getElementById("horas");
+    const fecha = document.getElementById("fecha").value;
 
-  contenedor.innerHTML = "Cargando...";
-
-  const res = await fetch(`${API}/disponibilidad?fecha=${fecha}`);
-  const data = await res.json();
-
-  contenedor.innerHTML = "";
-
-  data.forEach(h => {
-    const div = document.createElement("div");
-    div.textContent = h.hora + " - " + h.estado;
-    div.className = "hora " + h.estado;
-
-    if (h.estado === "libre") {
-      div.onclick = () => reservar(fecha, h.hora);
+    if (!fecha) {
+        alert("Selecciona una fecha");
+        return;
     }
 
-    contenedor.appendChild(div);
-  });
+    try {
+        const res = await fetch(`${API}/disponibilidad?fecha=${fecha}`);
+        const data = await res.json();
+
+        const contenedor = document.getElementById("horas");
+        contenedor.innerHTML = "";
+
+        data.forEach(h => {
+            const btn = document.createElement("button");
+            btn.textContent = h.hora;
+            btn.className = h.estado;
+
+            if (h.estado === "libre") {
+                btn.onclick = () => reservar(fecha, h.hora);
+            } else {
+                btn.disabled = true;
+            }
+
+            contenedor.appendChild(btn);
+        });
+
+    } catch (error) {
+        console.error(error);
+        alert("Error al cargar disponibilidad");
+    }
 }
 
+
+// 📅 RESERVAR
 async function reservar(fecha, hora) {
-  const cliente = document.getElementById("cliente").value;
-  const mensaje = document.getElementById("mensaje");
+    const nombre = document.getElementById("nombre").value;
 
-  if (!cliente) {
-    mensaje.textContent = "Escribe tu nombre";
-    return;
-  }
+    if (!nombre) {
+        alert("Escribe tu nombre");
+        return;
+    }
 
-  const res = await fetch(`${API}/citas`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      cliente,
-      fecha,
-      hora
-    })
-  });
+    try {
+        const res = await fetch(`${API}/reservar`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ fecha, hora, nombre })
+        });
 
-  const data = await res.json();
+        const data = await res.json();
 
-  mensaje.textContent = data.mensaje;
+        document.getElementById("mensaje").textContent = data.mensaje;
 
-  verDisponibilidad();
+        // 🔄 refrescar disponibilidad
+        verDisponibilidad();
+
+    } catch (error) {
+        console.error(error);
+        alert("Error al reservar");
+    }
 }
+
 </script>
 
 </body>
