@@ -9,124 +9,71 @@ app.use(express.json());
 // Base de datos en memoria
 let citas = [];
 
-// Ruta base
+// Ruta test
 app.get("/", (req, res) => {
-  res.send("API de citas funcionando 🚀");
+  res.send("API funcionando");
 });
 
-
-// =========================
-// 📅 CREAR CITA
-// =========================
+// Crear cita
 app.post("/citas", (req, res) => {
   const { cliente, fecha, hora } = req.body;
 
-  // Validación básica
   if (!cliente || !fecha || !hora) {
     return res.status(400).json({
       mensaje: "Faltan datos"
     });
   }
 
-  // Configuración negocio
-  const horaApertura = 9;
-  const horaCierre = 18;
-  const duracion = 30; // minutos
+  const existe = citas.find(c => c.fecha === fecha && c.hora === hora);
 
-  // Convertir hora a minutos
-  const [h, m] = hora.split(":").map(Number);
-  const minutosCita = h * 60 + m;
-
-  const aperturaMin = horaApertura * 60;
-  const cierreMin = horaCierre * 60;
-
-  // ❌ Fuera de horario
-  if (minutosCita < aperturaMin || minutosCita >= cierreMin) {
-    return res.status(400).json({
-      mensaje: "Fuera del horario del negocio"
-    });
-  }
-
-  // ❌ Solo intervalos de 30 min
-  if (m !== 0 && m !== 30) {
-    return res.status(400).json({
-      mensaje: "Solo se permiten intervalos de 30 minutos"
-    });
-  }
-
-  // ❌ Evitar solapamientos
-  const conflicto = citas.find(c => {
-    if (c.fecha !== fecha) return false;
-
-    const [ch, cm] = c.hora.split(":").map(Number);
-    const citaExistente = ch * 60 + cm;
-
-    return Math.abs(citaExistente - minutosCita) < duracion;
-  });
-
-  if (conflicto) {
+  if (existe) {
     return res.status(400).json({
       mensaje: "Horario ocupado"
     });
   }
 
-  const nuevaCita = { cliente, fecha, hora };
-  citas.push(nuevaCita);
+  citas.push({ cliente, fecha, hora });
 
   res.json({
-    mensaje: "Cita creada",
-    cita: nuevaCita
+    mensaje: "Cita creada"
   });
 });
 
-
-// =========================
-// 📋 VER CITAS
-// =========================
+// Ver citas
 app.get("/citas", (req, res) => {
   res.json(citas);
 });
 
-
-// =========================
-// 🕒 DISPONIBILIDAD
-// =========================
+// Disponibilidad
 app.get("/disponibilidad", (req, res) => {
   const { fecha } = req.query;
 
   if (!fecha) {
-    return res.status(400).json({
-      mensaje: "Debes enviar una fecha"
-    });
+    return res.status(400).json({ mensaje: "Falta fecha" });
   }
 
-  const horaApertura = 9;
-  const horaCierre = 18;
-  const duracion = 30;
+  const apertura = 9;
+  const cierre = 18;
 
-  let disponibilidad = [];
+  let horas = [];
 
-  for (let tiempo = horaApertura * 60; tiempo < horaCierre * 60; tiempo += duracion) {
-    const h = Math.floor(tiempo / 60).toString().padStart(2, "0");
-    const m = (tiempo % 60).toString().padStart(2, "0");
+  for (let i = apertura; i < cierre; i++) {
+    let horaStr = i.toString().padStart(2, "0") + ":00";
 
-    const horaStr = `${h}:${m}`;
+    const ocupada = citas.find(c => c.fecha === fecha && c.hora === horaStr);
 
-    const ocupado = citas.find(c => c.fecha === fecha && c.hora === horaStr);
-
-    disponibilidad.push({
+    horas.push({
       hora: horaStr,
-      estado: ocupado ? "ocupado" : "libre"
+      estado: ocupada ? "ocupado" : "libre"
     });
   }
 
-  res.json(disponibilidad);
+  res.json(horas);
 });
 
+// Servidor
+const PORT = process.env.PORT || 3000;
 
-// =========================
-// 🚀 SERVIDOR
-// =========================
-app.listen(3000, () => {
-  console.log("Servidor corriendo en http://localhost:3000 🚀");
+app.listen(PORT, () => {
+  console.log("Servidor corriendo en puerto " + PORT);
 });
