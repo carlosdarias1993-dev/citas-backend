@@ -21,17 +21,15 @@ const horas = [
 app.get("/disponibilidad", (req, res) => {
   const { fecha } = req.query;
 
-  if (!fecha) {
-    return res.status(400).json({ error: "Falta la fecha" });
-  }
+  const horas = [
+    "09:00","10:00","11:00","12:00",
+    "13:00","14:00","15:00","16:00","17:00"
+  ];
 
-  const disponibilidad = horas.map(hora => {
-    const ocupada = reservas.find(r => r.fecha === fecha && r.hora === hora);
-    return {
-      hora,
-      estado: ocupada ? "ocupado" : "libre"
-    };
-  });
+  const disponibilidad = horas.map(hora => ({
+    hora,
+    estado: "libre"
+  }));
 
   res.json(disponibilidad);
 });
