@@ -2,78 +2,70 @@ const express = require("express");
 const cors = require("cors");
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
+// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// Base de datos en memoria
-let citas = [];
+// 🧠 Base de datos en memoria
+let reservas = [];
 
-// Ruta test
-app.get("/", (req, res) => {
-  res.send("API funcionando");
-});
+// ⏰ Horas disponibles
+const horas = [
+  "09:00", "10:00", "11:00", "12:00",
+  "13:00", "14:00", "15:00", "16:00", "17:00"
+];
 
-// Crear cita
-app.post("/citas", (req, res) => {
-  const { cliente, fecha, hora } = req.body;
-
-  if (!cliente || !fecha || !hora) {
-    return res.status(400).json({
-      mensaje: "Faltan datos"
-    });
-  }
-
-  const existe = citas.find(c => c.fecha === fecha && c.hora === hora);
-
-  if (existe) {
-    return res.status(400).json({
-      mensaje: "Horario ocupado"
-    });
-  }
-
-  citas.push({ cliente, fecha, hora });
-
-  res.json({
-    mensaje: "Cita creada"
-  });
-});
-
-// Ver citas
-app.get("/citas", (req, res) => {
-  res.json(citas);
-});
-
-// Disponibilidad
+// 📅 VER DISPONIBILIDAD
 app.get("/disponibilidad", (req, res) => {
   const { fecha } = req.query;
 
   if (!fecha) {
-    return res.status(400).json({ mensaje: "Falta fecha" });
+    return res.status(400).json({ error: "Falta la fecha" });
   }
 
-  const apertura = 9;
-  const cierre = 18;
-
-  let horas = [];
-
-  for (let i = apertura; i < cierre; i++) {
-    let horaStr = i.toString().padStart(2, "0") + ":00";
-
-    const ocupada = citas.find(c => c.fecha === fecha && c.hora === horaStr);
-
-    horas.push({
-      hora: horaStr,
+  const disponibilidad = horas.map(hora => {
+    const ocupada = reservas.find(r => r.fecha === fecha && r.hora === hora);
+    return {
+      hora,
       estado: ocupada ? "ocupado" : "libre"
-    });
-  }
+    };
+  });
 
-  res.json(horas);
+  res.json(disponibilidad);
 });
 
-// Servidor
-const PORT = process.env.PORT || 3000;
 
+// 📝 RESERVAR CITA
+app.post("/reservar", (req, res) => {
+  const { fecha, hora, nombre } = req.body;
+
+  if (!fecha || !hora || !nombre) {
+    return res.status(400).json({ mensaje: "Faltan datos" });
+  }
+
+  // 🚫 Verificar si ya está ocupada
+  const existe = reservas.find(r => r.fecha === fecha && r.hora === hora);
+
+  if (existe) {
+    return res.json({ mensaje: "Hora ya reservada" });
+  }
+
+  // ✅ Guardar reserva
+  reservas.push({ fecha, hora, nombre });
+
+  res.json({ mensaje: "Reserva confirmada ✅" });
+});
+
+
+// 🌐 RUTA BASE
+app.get("/", (req, res) => {
+  res.send("Servidor de citas funcionando 🚀");
+});
+
+
+// 🚀 INICIAR SERVIDOR
 app.listen(PORT, () => {
-  console.log("Servidor corriendo en puerto " + PORT);
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
