@@ -1,111 +1,147 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Reservas</title>
+  <meta charset="UTF-8">
+  <title>Reservar cita</title>
 
-<style>
-body {
-  font-family: Arial;
-  background: #f4f6f9;
-  text-align: center;
-}
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
 
-.container {
-  background: white;
-  padding: 20px;
-  margin: 50px auto;
-  width: 300px;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 350px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
 
-h1 {
-  color: #333;
-}
+    h1 {
+      margin-bottom: 20px;
+    }
 
-button {
-  padding: 10px;
-  margin: 5px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
 
-.libre {
-  background: #28a745;
-  color: white;
-}
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
 
-.ocupado {
-  background: #ccc;
-}
+    button:hover {
+      background: #5a67d8;
+    }
 
-</style>
+    .hora {
+      margin: 5px;
+      padding: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .libre {
+      background: #c6f6d5;
+    }
+
+    .ocupado {
+      background: #fed7d7;
+      cursor: not-allowed;
+    }
+
+    #mensaje {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+  </style>
 </head>
 
 <body>
 
-<div class="container">
-  <h1>Reservar cita</h1>
+  <div class="container">
+    <h1>Reservar cita</h1>
 
-  <input type="date" id="fecha"><br><br>
-  <input type="text" id="nombre" placeholder="Tu nombre"><br><br>
+    <input type="date" id="fecha">
+    <input type="text" id="cliente" placeholder="Tu nombre">
 
-  <button onclick="cargar()">Ver disponibilidad</button>
+    <button onclick="verDisponibilidad()">Ver disponibilidad</button>
 
-  <div id="horas"></div>
-</div>
+    <div id="horas"></div>
+
+    <div id="mensaje"></div>
+  </div>
 
 <script>
+const API = "https://citas-backend-d04e.onrender.com";
 
-const API = "https://citas-backend.onrender.com";
-
-async function cargar() {
+async function verDisponibilidad() {
   const fecha = document.getElementById("fecha").value;
+  const contenedor = document.getElementById("horas");
+
+  contenedor.innerHTML = "Cargando...";
 
   const res = await fetch(`${API}/disponibilidad?fecha=${fecha}`);
   const data = await res.json();
 
-  const cont = document.getElementById("horas");
-  cont.innerHTML = "";
+  contenedor.innerHTML = "";
 
   data.forEach(h => {
-    const btn = document.createElement("button");
-    btn.innerText = h.hora;
-
-    btn.className = h.estado === "ocupado" ? "ocupado" : "libre";
+    const div = document.createElement("div");
+    div.textContent = h.hora + " - " + h.estado;
+    div.className = "hora " + h.estado;
 
     if (h.estado === "libre") {
-      btn.onclick = () => reservar(h.hora);
-    } else {
-      btn.disabled = true;
+      div.onclick = () => reservar(fecha, h.hora);
     }
 
-    cont.appendChild(btn);
+    contenedor.appendChild(div);
   });
 }
 
-async function reservar(hora) {
-  const fecha = document.getElementById("fecha").value;
-  const nombre = document.getElementById("nombre").value;
+async function reservar(fecha, hora) {
+  const cliente = document.getElementById("cliente").value;
+  const mensaje = document.getElementById("mensaje");
 
-  await fetch(`${API}/citas`, {
+  if (!cliente) {
+    mensaje.textContent = "Escribe tu nombre";
+    return;
+  }
+
+  const res = await fetch(`${API}/citas`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      cliente: nombre,
+      cliente,
       fecha,
       hora
     })
   });
 
-  alert("Cita reservada");
-  cargar();
-}
+  const data = await res.json();
 
+  mensaje.textContent = data.mensaje;
+
+  verDisponibilidad();
+}
 </script>
 
 </body>
