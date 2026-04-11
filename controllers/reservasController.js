@@ -31,18 +31,31 @@ exports.obtenerDisponibilidad = async (req, res) => {
   }
 };
 
-// 🆕 RESERVAR
+// 🔐 RESERVAR (MEJORADO)
 exports.reservar = async (req, res) => {
   try {
     const { fecha, hora, nombre } = req.body;
     const usuarioId = req.usuario.id;
 
+    // 🚫 1. BLOQUEAR SI YA EXISTE (GLOBAL)
     const existe = await Reserva.findOne({ fecha, hora });
 
     if (existe) {
-      return res.status(400).json({ error: "Hora ocupada" });
+      return res.status(400).json({ error: "Esta hora ya está reservada" });
     }
 
+    // 🚫 2. BLOQUEAR DUPLICADO MISMO USUARIO
+    const duplicadaUsuario = await Reserva.findOne({
+      fecha,
+      hora,
+      usuario: usuarioId
+    });
+
+    if (duplicadaUsuario) {
+      return res.status(400).json({ error: "Ya reservaste esta hora" });
+    }
+
+    // ✅ CREAR RESERVA
     const nueva = new Reserva({
       fecha,
       hora,
@@ -52,14 +65,14 @@ exports.reservar = async (req, res) => {
 
     await nueva.save();
 
-    res.json({ mensaje: "Reserva creada" });
+    res.json({ mensaje: "Reserva creada correctamente 🔥" });
 
   } catch (error) {
     res.status(500).json({ error: "Error al reservar" });
   }
 };
 
-// 📋 MIS CITAS (NUEVO)
+// 📋 MIS CITAS
 exports.misCitas = async (req, res) => {
   try {
     const usuarioId = req.usuario.id;
