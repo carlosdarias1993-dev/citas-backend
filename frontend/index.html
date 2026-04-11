@@ -18,7 +18,7 @@
       background: white;
       padding: 30px;
       border-radius: 12px;
-      width: 300px;
+      width: 320px;
       text-align: center;
       box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     }
@@ -27,6 +27,7 @@
       width: 100%;
       padding: 10px;
       margin: 10px 0;
+      box-sizing: border-box;
     }
 
     .hora {
@@ -49,9 +50,20 @@
     .login-box {
       background: #222;
       color: white;
-      padding: 15px;
+      padding: 20px;
       border-radius: 10px;
       margin-bottom: 15px;
+    }
+
+    .login-box input {
+      border: none;
+      border-radius: 5px;
+    }
+
+    .login-box button {
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -73,14 +85,18 @@
     <button onclick="logout()">Cerrar sesión</button>
   </div>
 
-  <h2>Reservar cita</h2>
+  <!-- APP -->
+  <div id="appBox" style="display:none;">
+    <h2>Reservar cita</h2>
 
-  <input type="date" id="fecha">
-  <input type="text" id="nombre" placeholder="Tu nombre">
+    <input type="date" id="fecha">
+    <input type="text" id="nombre" placeholder="Tu nombre">
 
-  <button onclick="verDisponibilidad()">Ver disponibilidad</button>
+    <button onclick="verDisponibilidad()">Ver disponibilidad</button>
 
-  <div id="horas"></div>
+    <div id="horas"></div>
+  </div>
+
 </div>
 
 <script>
@@ -106,6 +122,7 @@ async function login() {
 
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("userBox").style.display = "block";
+    document.getElementById("appBox").style.display = "block";
 
     alert("Login correcto 🔥");
   } else {
@@ -119,6 +136,7 @@ function logout() {
 
   document.getElementById("loginBox").style.display = "block";
   document.getElementById("userBox").style.display = "none";
+  document.getElementById("appBox").style.display = "none";
 }
 
 // 🔄 AUTO LOGIN
@@ -128,6 +146,7 @@ window.onload = () => {
   if (token) {
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("userBox").style.display = "block";
+    document.getElementById("appBox").style.display = "block";
   }
 };
 
