@@ -5,7 +5,8 @@ const mongoose = require("mongoose");
 mongoose.connect("mongodb+srv://carlosdarias1993_db_user:Ab123456@cluster0.2zusqk9.mongodb.net/citas")
   .then(() => console.log("🟢 Mongo conectado"))
   .catch(err => console.log(err));
-  const ReservaSchema = new mongoose.Schema({
+
+const ReservaSchema = new mongoose.Schema({
   nombre: String,
   fecha: String,
   hora: String
@@ -16,25 +17,19 @@ const Reserva = mongoose.model("Reserva", ReservaSchema);
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// CORS
 app.use(cors());
 app.use(express.json());
 
-// Base de datos en memoria
-
-
-// Horas disponibles
 const horas = [
   "09:00","10:00","11:00","12:00",
   "13:00","14:00","15:00","16:00","17:00"
 ];
 
-// Ruta raíz (para evitar Not Found)
 app.get("/", (req, res) => {
   res.send("Servidor funcionando 🚀");
 });
 
-// Disponibilidad
+// ✅ DISPONIBILIDAD (Mongo)
 app.get("/disponibilidad", async (req, res) => {
   const { fecha } = req.query;
 
@@ -55,21 +50,8 @@ app.get("/disponibilidad", async (req, res) => {
   res.json(resultado);
 });
 
-// Reservar
-app.post("/reservar", (req, res) => {
-  const { fecha, hora, nombre } = req.body;
-
-  if (!fecha || !hora || !nombre) {
-    return res.status(400).json({ error: "Faltan datos" });
-  }
-
-  const existe = reservas.find(r => r.fecha === fecha && r.hora === hora);
-
-  if (existe) {
-    return res.status(400).json({ error: "Hora ocupada" });
-  }
-
-  app.post("/reservar", async (req, res) => {
+// ✅ RESERVAR (Mongo)
+app.post("/reservar", async (req, res) => {
   const { fecha, hora, nombre } = req.body;
 
   if (!fecha || !hora || !nombre) {
@@ -86,9 +68,6 @@ app.post("/reservar", (req, res) => {
   await nuevaReserva.save();
 
   res.json({ mensaje: "Reserva guardada en BD 🔥" });
-});
-
-  
 });
 
 app.listen(PORT, () => {
