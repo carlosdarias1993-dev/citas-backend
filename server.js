@@ -2,8 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 
-const mongoose = require("mongoose");
-
 mongoose.connect("mongodb+srv://carlosdarias1993_db_user:Carlos123@cluster0.2zusqk9.mongodb.net/citas")
 .then(() => console.log("Mongo conectado"))
 .catch(err => console.log(err));
@@ -31,7 +29,6 @@ app.get("/", (req, res) => {
   res.send("Servidor funcionando 🚀");
 });
 
-// ✅ DISPONIBILIDAD (Mongo)
 app.get("/disponibilidad", async (req, res) => {
   const { fecha } = req.query;
 
@@ -52,7 +49,6 @@ app.get("/disponibilidad", async (req, res) => {
   res.json(resultado);
 });
 
-// ✅ RESERVAR (Mongo)
 app.post("/reservar", async (req, res) => {
   const { fecha, hora, nombre } = req.body;
 
