@@ -5,14 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 
 // 🔥 FORZAR CORS BIEN
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "*");
-  res.header("Access-Control-Allow-Methods", "*");
-  next();
-});
-
-app.use(cors({origin: "*"}));
+app.use(cors());
 app.use(express.json());
 // Datos en memoria
 let reservas = [];
