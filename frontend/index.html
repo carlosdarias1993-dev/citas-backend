@@ -65,6 +65,12 @@
       border-radius: 5px;
       cursor: pointer;
     }
+
+    .toggle {
+      font-size: 12px;
+      cursor: pointer;
+      color: lightblue;
+    }
   </style>
 </head>
 <body>
@@ -77,6 +83,19 @@
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="password" placeholder="Password">
     <button onclick="login()">Login</button>
+
+    <p class="toggle" onclick="mostrarRegistro()">¿No tienes cuenta? Crear cuenta</p>
+  </div>
+
+  <!-- REGISTRO -->
+  <div id="registerBox" class="login-box" style="display:none;">
+    <h3>Registro</h3>
+    <input type="text" id="nombreRegistro" placeholder="Nombre">
+    <input type="email" id="emailRegistro" placeholder="Email">
+    <input type="password" id="passwordRegistro" placeholder="Password">
+    <button onclick="register()">Crear cuenta</button>
+
+    <p class="toggle" onclick="mostrarLogin()">Ya tengo cuenta</p>
   </div>
 
   <!-- USUARIO -->
@@ -102,6 +121,38 @@
 <script>
 const API = "https://citas-backend-production-6435.up.railway.app";
 
+// 🔁 CAMBIAR VISTAS
+function mostrarRegistro() {
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("registerBox").style.display = "block";
+}
+
+function mostrarLogin() {
+  document.getElementById("loginBox").style.display = "block";
+  document.getElementById("registerBox").style.display = "none";
+}
+
+// 🔐 REGISTER
+async function register() {
+  const nombre = document.getElementById("nombreRegistro").value;
+  const email = document.getElementById("emailRegistro").value;
+  const password = document.getElementById("passwordRegistro").value;
+
+  const res = await fetch(`${API}/api/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ nombre, email, password })
+  });
+
+  const data = await res.json();
+
+  alert(data.mensaje || data.error);
+
+  mostrarLogin();
+}
+
 // 🔐 LOGIN
 async function login() {
   const email = document.getElementById("email").value;
@@ -121,6 +172,7 @@ async function login() {
     localStorage.setItem("token", data.token);
 
     document.getElementById("loginBox").style.display = "none";
+    document.getElementById("registerBox").style.display = "none";
     document.getElementById("userBox").style.display = "block";
     document.getElementById("appBox").style.display = "block";
 
@@ -135,6 +187,7 @@ function logout() {
   localStorage.removeItem("token");
 
   document.getElementById("loginBox").style.display = "block";
+  document.getElementById("registerBox").style.display = "none";
   document.getElementById("userBox").style.display = "none";
   document.getElementById("appBox").style.display = "none";
 }
