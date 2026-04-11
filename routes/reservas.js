@@ -1,17 +1,16 @@
 const express = require("express");
 const router = express.Router();
 
-const auth = require("../middleware/authMiddleware");
+const reservasController = require("../controllers/reservasController");
+const authMiddleware = require("../middleware/authMiddleware");
 
-const {
-  obtenerDisponibilidad,
-  crearReserva
-} = require("../controllers/reservasController");
+// 📅 DISPONIBILIDAD
+router.get("/disponibilidad", reservasController.obtenerDisponibilidad);
 
-// 🔓 pública
-router.get("/disponibilidad", obtenerDisponibilidad);
+// 🔐 RESERVAR
+router.post("/reservar", authMiddleware, reservasController.reservar);
 
-// 🔐 protegida
-router.post("/reservar", auth, crearReserva);
+// 📋 MIS CITAS
+router.get("/mis-citas", authMiddleware, reservasController.misCitas);
 
 module.exports = router;

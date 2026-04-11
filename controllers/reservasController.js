@@ -1,45 +1,75 @@
 const Reserva = require("../models/Reserva");
 
-const horas = [
-  "09:00","10:00","11:00","12:00",
-  "13:00","14:00","15:00","16:00","17:00"
-];
-
+// 📅 VER DISPONIBILIDAD
 exports.obtenerDisponibilidad = async (req, res) => {
-  const { fecha } = req.query;
+  try {
+    const { fecha } = req.query;
 
-  if (!fecha) {
-    return res.status(400).json({ error: "Falta fecha" });
+    const horas = [
+      "09:00",
+      "10:00",
+      "11:00",
+      "12:00",
+      "13:00"
+    ];
+
+    const reservas = await Reserva.find({ fecha });
+
+    const disponibilidad = horas.map(hora => {
+      const ocupada = reservas.find(r => r.hora === hora);
+
+      return {
+        hora,
+        estado: ocupada ? "ocupado" : "libre"
+      };
+    });
+
+    res.json(disponibilidad);
+
+  } catch (error) {
+    res.status(500).json({ error: "Error obteniendo disponibilidad" });
   }
-
-  const reservas = await Reserva.find({ fecha });
-
-  const resultado = horas.map(hora => {
-    const ocupada = reservas.find(r => r.hora === hora);
-    return {
-      hora,
-      estado: ocupada ? "ocupado" : "libre"
-    };
-  });
-
-  res.json(resultado);
 };
 
-exports.crearReserva = async (req, res) => {
-  const { fecha, hora, nombre } = req.body;
+// 🆕 RESERVAR
+exports.reservar = async (req, res) => {
+  try {
+    const { fecha, hora, nombre } = req.body;
+    const usuarioId = req.usuario.id;
 
-  if (!fecha || !hora || !nombre) {
-    return res.status(400).json({ error: "Faltan datos" });
+    const existe = await Reserva.findOne({ fecha, hora });
+
+    if (existe) {
+      return res.status(400).json({ error: "Hora ocupada" });
+    }
+
+    const nueva = new Reserva({
+      fecha,
+      hora,
+      nombre,
+      usuario: usuarioId
+    });
+
+    await nueva.save();
+
+    res.json({ mensaje: "Reserva creada" });
+
+  } catch (error) {
+    res.status(500).json({ error: "Error al reservar" });
   }
+};
 
-  const existe = await Reserva.findOne({ fecha, hora });
+// 📋 MIS CITAS (NUEVO)
+exports.misCitas = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
 
-  if (existe) {
-    return res.status(400).json({ error: "Hora ocupada" });
+    const citas = await Reserva.find({ usuario: usuarioId })
+      .sort({ fecha: 1, hora: 1 });
+
+    res.json(citas);
+
+  } catch (error) {
+    res.status(500).json({ error: "Error obteniendo citas" });
   }
-
-  const nuevaReserva = new Reserva({ fecha, hora, nombre });
-  await nuevaReserva.save();
-
-  res.json({ mensaje: "Reserva guardada 🔥" });
 };
