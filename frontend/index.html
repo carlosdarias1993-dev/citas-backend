@@ -60,11 +60,17 @@
 <div class="container">
 
   <!-- LOGIN -->
-  <div class="login-box">
+  <div id="loginBox" class="login-box">
     <h3>Login</h3>
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="password" placeholder="Password">
     <button onclick="login()">Login</button>
+  </div>
+
+  <!-- USUARIO -->
+  <div id="userBox" style="display:none; margin-bottom:10px;">
+    <p>✅ Sesión iniciada</p>
+    <button onclick="logout()">Cerrar sesión</button>
   </div>
 
   <h2>Reservar cita</h2>
@@ -97,14 +103,43 @@ async function login() {
 
   if (data.token) {
     localStorage.setItem("token", data.token);
+
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("userBox").style.display = "block";
+
     alert("Login correcto 🔥");
   } else {
     alert(data.error || "Error en login");
   }
 }
 
+// 🔓 LOGOUT
+function logout() {
+  localStorage.removeItem("token");
+
+  document.getElementById("loginBox").style.display = "block";
+  document.getElementById("userBox").style.display = "none";
+}
+
+// 🔄 AUTO LOGIN
+window.onload = () => {
+  const token = localStorage.getItem("token");
+
+  if (token) {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("userBox").style.display = "block";
+  }
+};
+
 // 📅 DISPONIBILIDAD
 async function verDisponibilidad() {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    alert("Debes iniciar sesión primero");
+    return;
+  }
+
   const fecha = document.getElementById("fecha").value;
 
   if (!fecha) {
@@ -133,7 +168,7 @@ async function verDisponibilidad() {
   });
 }
 
-// 🔐 RESERVAR (PROTEGIDO)
+// 🔐 RESERVAR
 async function reservar(fecha, hora) {
   const nombre = document.getElementById("nombre").value;
   const token = localStorage.getItem("token");
