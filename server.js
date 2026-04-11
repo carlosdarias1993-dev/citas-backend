@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb+srv://carlosdarias1993_db_user:<db_password>@cluster0.2zusqk9.mongodb.net/?appName=Cluster0")
+mongoose.connect("mongodb+srv://carlosdarias1993_db_user:Ab123456@cluster0.2zusqk9.mongodb.net/citas")
   .then(() => console.log("🟢 Mongo conectado"))
   .catch(err => console.log(err));
 
