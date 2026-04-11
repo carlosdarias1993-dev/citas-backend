@@ -1,5 +1,10 @@
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
+
+mongoose.connect("mongodb+srv://carlosdarias1993_db_user:Ab123456@cluster0.2zusqk9.mongodb.net/citas")
+  .then(() => console.log("🟢 Mongo conectado"))
+  .catch(err => console.log(err));
 
 const app = express();
 const PORT = process.env.PORT || 10000;
