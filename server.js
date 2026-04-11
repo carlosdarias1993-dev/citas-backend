@@ -1,21 +1,12 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-
-mongoose.connect("mongodb+srv://carlosdarias1993_db_user:Carlos123@cluster0.2zusqk9.mongodb.net/citas")
-.then(() => console.log("Mongo conectado"))
-.catch(err => console.log(err));
-
-const ReservaSchema = new mongoose.Schema({
-  nombre: String,
-  fecha: String,
-  hora: String
-});
-
-const Reserva = mongoose.model("Reserva", ReservaSchema);
+const connectDB = require("./config/db");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
+
+connectDB();
 
 app.use(cors());
 app.use(express.json());
