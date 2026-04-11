@@ -6,58 +6,41 @@
 
 <style>
 body {
-    font-family: Arial;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0;
+  font-family: Arial;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .container {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    width: 320px;
-    text-align: center;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
-
-h2 {
-    margin-bottom: 20px;
-}
-
-input, button {
-    width: 100%;
-    padding: 10px;
-    margin: 8px 0;
-    border-radius: 6px;
-    border: 1px solid #ccc;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 300px;
+  text-align: center;
 }
 
 button {
-    background: #667eea;
-    color: white;
-    cursor: pointer;
-    border: none;
+  margin-top: 10px;
+  padding: 10px;
+  width: 100%;
+  cursor: pointer;
 }
 
-button:hover {
-    background: #5a67d8;
-}
-
-#horas button {
-    margin: 5px;
-    width: auto;
+.hora {
+  margin: 5px;
 }
 
 .libre {
-    background: #48bb78;
+  background: green;
+  color: white;
 }
 
 .ocupado {
-    background: #e53e3e;
+  background: red;
+  color: white;
 }
 </style>
 </head>
@@ -65,90 +48,75 @@ button:hover {
 <body>
 
 <div class="container">
-    <h2>Reservar cita</h2>
+  <h2>Reservar cita</h2>
 
-    <input type="date" id="fecha">
-    <input type="text" id="nombre" placeholder="Tu nombre">
+  <input type="date" id="fecha"><br><br>
+  <input type="text" id="nombre" placeholder="Tu nombre"><br><br>
 
-    <button onclick="verDisponibilidad()">Ver disponibilidad</button>
+  <button onclick="verDisponibilidad()">Ver disponibilidad</button>
 
-    <div id="horas"></div>
-
-    <p id="mensaje"></p>
+  <div id="horas"></div>
 </div>
 
 <script>
+const API = "https://citas-backend-d04e.onrender.com"; // ⚠️ TU URL
 
-const API = "https://citas-backend-d04e.onrender.com";
-
-// 🔍 VER DISPONIBILIDAD
 async function verDisponibilidad() {
-    const fecha = document.getElementById("fecha").value;
+  const fecha = document.getElementById("fecha").value;
 
-    if (!fecha) {
-        alert("Selecciona una fecha");
-        return;
-    }
+  if (!fecha) {
+    alert("Selecciona una fecha");
+    return;
+  }
 
-    try {
-        const res = await fetch(`${API}/disponibilidad?fecha=${fecha}`);
-        const data = await res.json();
+  try {
+    const res = await fetch(`${API}/disponibilidad?fecha=${fecha}`);
+    const data = await res.json();
 
-        const contenedor = document.getElementById("horas");
-        contenedor.innerHTML = "";
+    const contenedor = document.getElementById("horas");
+    contenedor.innerHTML = "";
 
-        data.forEach(h => {
-            const btn = document.createElement("button");
-            btn.textContent = h.hora;
-            btn.className = h.estado;
+    data.forEach(h => {
+      const btn = document.createElement("button");
+      btn.textContent = h.hora;
+      btn.className = "hora " + h.estado;
 
-            if (h.estado === "libre") {
-                btn.onclick = () => reservar(fecha, h.hora);
-            } else {
-                btn.disabled = true;
-            }
+      if (h.estado === "libre") {
+        btn.onclick = () => reservar(fecha, h.hora);
+      } else {
+        btn.disabled = true;
+      }
 
-            contenedor.appendChild(btn);
-        });
+      contenedor.appendChild(btn);
+    });
 
-    } catch (error) {
-        console.error(error);
-        alert("Error al cargar disponibilidad");
-    }
+  } catch (error) {
+    alert("Error al cargar disponibilidad");
+    console.error(error);
+  }
 }
 
-
-// 📅 RESERVAR
 async function reservar(fecha, hora) {
-    const nombre = document.getElementById("nombre").value;
+  const nombre = document.getElementById("nombre").value;
 
-    if (!nombre) {
-        alert("Escribe tu nombre");
-        return;
-    }
+  if (!nombre) {
+    alert("Pon tu nombre");
+    return;
+  }
 
-    try {
-        const res = await fetch(`${API}/reservar`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ fecha, hora, nombre })
-        });
+  const res = await fetch(`${API}/reservar`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ fecha, hora, nombre })
+  });
 
-        const data = await res.json();
+  const data = await res.json();
+  alert(data.mensaje);
 
-        document.getElementById("mensaje").textContent = data.mensaje;
-
-        // 🔄 refrescar disponibilidad
-        verDisponibilidad();
-
-    } catch (error) {
-        console.error(error);
-        alert("Error al reservar");
-    }
+  verDisponibilidad();
 }
-
 </script>
 
 </body>
