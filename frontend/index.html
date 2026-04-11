@@ -1,276 +1,51 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Reservar cita</title>
-
-  <style>
-    body {
-      font-family: Arial;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      width: 320px;
-      text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      box-sizing: border-box;
-    }
-
-    .hora {
-      margin: 5px;
-      padding: 10px;
-      border: none;
-      cursor: pointer;
-    }
-
-    .libre {
-      background: green;
-      color: white;
-    }
-
-    .ocupado {
-      background: red;
-      color: white;
-    }
-
-    .login-box {
-      background: #222;
-      color: white;
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 15px;
-    }
-
-    .login-box input {
-      border: none;
-      border-radius: 5px;
-    }
-
-    .login-box button {
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .toggle {
-      font-size: 12px;
-      cursor: pointer;
-      color: lightblue;
-    }
-  </style>
-</head>
-<body>
-
-<div class="container">
-
-  <!-- LOGIN -->
-  <div id="loginBox" class="login-box">
-    <h3>Login</h3>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="login()">Login</button>
-
-    <p class="toggle" onclick="mostrarRegistro()">¿No tienes cuenta? Crear cuenta</p>
-  </div>
-
-  <!-- REGISTRO -->
-  <div id="registerBox" class="login-box" style="display:none;">
-    <h3>Registro</h3>
-    <input type="text" id="nombreRegistro" placeholder="Nombre">
-    <input type="email" id="emailRegistro" placeholder="Email">
-    <input type="password" id="passwordRegistro" placeholder="Password">
-    <button onclick="register()">Crear cuenta</button>
-
-    <p class="toggle" onclick="mostrarLogin()">Ya tengo cuenta</p>
-  </div>
-
-  <!-- USUARIO -->
-  <div id="userBox" style="display:none; margin-bottom:10px;">
-    <p>✅ Sesión iniciada</p>
-    <button onclick="logout()">Cerrar sesión</button>
-  </div>
-
-  <!-- APP -->
-  <div id="appBox" style="display:none;">
-    <h2>Reservar cita</h2>
-
-    <input type="date" id="fecha">
-    <input type="text" id="nombre" placeholder="Tu nombre">
-
-    <button onclick="verDisponibilidad()">Ver disponibilidad</button>
-
-    <div id="horas"></div>
-  </div>
-
-</div>
+<!-- SOLO TE PONGO LA PARTE IMPORTANTE MODIFICADA -->
 
 <script>
 const API = "https://citas-backend-production-6435.up.railway.app";
 
-// 🔁 CAMBIAR VISTAS
-function mostrarRegistro() {
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("registerBox").style.display = "block";
-}
+// 📋 VER MIS CITAS (ACTUALIZADO)
+async function verMisCitas() {
+  const token = localStorage.getItem("token");
 
-function mostrarLogin() {
-  document.getElementById("loginBox").style.display = "block";
-  document.getElementById("registerBox").style.display = "none";
-}
-
-// 🔐 REGISTER
-async function register() {
-  const nombre = document.getElementById("nombreRegistro").value;
-  const email = document.getElementById("emailRegistro").value;
-  const password = document.getElementById("passwordRegistro").value;
-
-  const res = await fetch(`${API}/api/auth/register`, {
-    method: "POST",
+  const res = await fetch(`${API}/mis-citas`, {
     headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ nombre, email, password })
+      "Authorization": token
+    }
   });
 
   const data = await res.json();
 
-  alert(data.mensaje || data.error);
-
-  mostrarLogin();
-}
-
-// 🔐 LOGIN
-async function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  const res = await fetch(`${API}/api/auth/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ email, password })
-  });
-
-  const data = await res.json();
-
-  if (data.token) {
-    localStorage.setItem("token", data.token);
-
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("registerBox").style.display = "none";
-    document.getElementById("userBox").style.display = "block";
-    document.getElementById("appBox").style.display = "block";
-
-    alert("Login correcto 🔥");
-  } else {
-    alert(data.error || "Error en login");
-  }
-}
-
-// 🔓 LOGOUT
-function logout() {
-  localStorage.removeItem("token");
-
-  document.getElementById("loginBox").style.display = "block";
-  document.getElementById("registerBox").style.display = "none";
-  document.getElementById("userBox").style.display = "none";
-  document.getElementById("appBox").style.display = "none";
-}
-
-// 🔄 AUTO LOGIN
-window.onload = () => {
-  const token = localStorage.getItem("token");
-
-  if (token) {
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("userBox").style.display = "block";
-    document.getElementById("appBox").style.display = "block";
-  }
-};
-
-// 📅 DISPONIBILIDAD
-async function verDisponibilidad() {
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    alert("Debes iniciar sesión primero");
-    return;
-  }
-
-  const fecha = document.getElementById("fecha").value;
-
-  if (!fecha) {
-    alert("Selecciona una fecha");
-    return;
-  }
-
-  const res = await fetch(`${API}/disponibilidad?fecha=${fecha}`);
-  const data = await res.json();
-
-  const contenedor = document.getElementById("horas");
+  const contenedor = document.getElementById("misCitas");
   contenedor.innerHTML = "";
 
-  data.forEach(h => {
-    const btn = document.createElement("button");
-    btn.textContent = h.hora;
-    btn.className = `hora ${h.estado}`;
+  data.forEach(cita => {
+    const div = document.createElement("div");
+    div.className = "cita";
 
-    if (h.estado === "libre") {
-      btn.onclick = () => reservar(fecha, h.hora);
-    } else {
-      btn.disabled = true;
-    }
+    div.innerHTML = `
+      📅 ${cita.fecha} - ${cita.hora}
+      <button onclick="cancelar('${cita._id}')">❌</button>
+    `;
 
-    contenedor.appendChild(btn);
+    contenedor.appendChild(div);
   });
 }
 
-// 🔐 RESERVAR
-async function reservar(fecha, hora) {
-  const nombre = document.getElementById("nombre").value;
+// ❌ CANCELAR
+async function cancelar(id) {
   const token = localStorage.getItem("token");
 
-  if (!token) {
-    alert("Debes iniciar sesión primero");
-    return;
-  }
-
-  if (!nombre) {
-    alert("Introduce tu nombre");
-    return;
-  }
-
-  const res = await fetch(`${API}/reservar`, {
-    method: "POST",
+  const res = await fetch(`${API}/cancelar/${id}`, {
+    method: "DELETE",
     headers: {
-      "Content-Type": "application/json",
       "Authorization": token
-    },
-    body: JSON.stringify({ fecha, hora, nombre })
+    }
   });
 
   const data = await res.json();
 
   alert(data.mensaje || data.error);
 
-  verDisponibilidad();
+  verMisCitas();
 }
 </script>
-
-</body>
-</html>

@@ -1,17 +1,11 @@
 const Reserva = require("../models/Reserva");
 
-// 📅 VER DISPONIBILIDAD
+// 📅 DISPONIBILIDAD
 exports.obtenerDisponibilidad = async (req, res) => {
   try {
     const { fecha } = req.query;
 
-    const horas = [
-      "09:00",
-      "10:00",
-      "11:00",
-      "12:00",
-      "13:00"
-    ];
+    const horas = ["09:00", "10:00", "11:00", "12:00", "13:00"];
 
     const reservas = await Reserva.find({ fecha });
 
@@ -31,31 +25,18 @@ exports.obtenerDisponibilidad = async (req, res) => {
   }
 };
 
-// 🔐 RESERVAR (MEJORADO)
+// 🔐 RESERVAR
 exports.reservar = async (req, res) => {
   try {
     const { fecha, hora, nombre } = req.body;
     const usuarioId = req.usuario.id;
 
-    // 🚫 1. BLOQUEAR SI YA EXISTE (GLOBAL)
     const existe = await Reserva.findOne({ fecha, hora });
 
     if (existe) {
       return res.status(400).json({ error: "Esta hora ya está reservada" });
     }
 
-    // 🚫 2. BLOQUEAR DUPLICADO MISMO USUARIO
-    const duplicadaUsuario = await Reserva.findOne({
-      fecha,
-      hora,
-      usuario: usuarioId
-    });
-
-    if (duplicadaUsuario) {
-      return res.status(400).json({ error: "Ya reservaste esta hora" });
-    }
-
-    // ✅ CREAR RESERVA
     const nueva = new Reserva({
       fecha,
       hora,
@@ -84,5 +65,31 @@ exports.misCitas = async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ error: "Error obteniendo citas" });
+  }
+};
+
+// ❌ CANCELAR CITA (NUEVO)
+exports.cancelarCita = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usuarioId = req.usuario.id;
+
+    const cita = await Reserva.findById(id);
+
+    if (!cita) {
+      return res.status(404).json({ error: "Cita no encontrada" });
+    }
+
+    // 🔐 SEGURIDAD
+    if (cita.usuario.toString() !== usuarioId) {
+      return res.status(403).json({ error: "No autorizado" });
+    }
+
+    await Reserva.findByIdAndDelete(id);
+
+    res.json({ mensaje: "Cita cancelada correctamente ❌" });
+
+  } catch (error) {
+    res.status(500).json({ error: "Error al cancelar cita" });
   }
 };
