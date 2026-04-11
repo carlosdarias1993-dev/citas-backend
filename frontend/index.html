@@ -45,11 +45,28 @@
       background: red;
       color: white;
     }
+
+    .login-box {
+      background: #222;
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
+
+  <!-- LOGIN -->
+  <div class="login-box">
+    <h3>Login</h3>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
+
   <h2>Reservar cita</h2>
 
   <input type="date" id="fecha">
@@ -63,6 +80,30 @@
 <script>
 const API = "https://citas-backend-production-6435.up.railway.app";
 
+// 🔐 LOGIN
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const res = await fetch(`${API}/api/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+    alert("Login correcto 🔥");
+  } else {
+    alert(data.error || "Error en login");
+  }
+}
+
+// 📅 DISPONIBILIDAD
 async function verDisponibilidad() {
   const fecha = document.getElementById("fecha").value;
 
@@ -71,62 +112,56 @@ async function verDisponibilidad() {
     return;
   }
 
-  try {
-    const res = await fetch(`${API}/disponibilidad?fecha=${fecha}`);
-    const data = await res.json();
+  const res = await fetch(`${API}/disponibilidad?fecha=${fecha}`);
+  const data = await res.json();
 
-    console.log("DATA:", data); // 👈 IMPORTANTE PARA DEBUG
+  const contenedor = document.getElementById("horas");
+  contenedor.innerHTML = "";
 
-    const contenedor = document.getElementById("horas");
-    contenedor.innerHTML = "";
+  data.forEach(h => {
+    const btn = document.createElement("button");
+    btn.textContent = h.hora;
+    btn.className = `hora ${h.estado}`;
 
-    data.forEach(h => {
-      const btn = document.createElement("button");
-      btn.textContent = h.hora;
-      btn.className = `hora ${h.estado}`;
+    if (h.estado === "libre") {
+      btn.onclick = () => reservar(fecha, h.hora);
+    } else {
+      btn.disabled = true;
+    }
 
-      if (h.estado === "libre") {
-        btn.onclick = () => reservar(fecha, h.hora);
-      } else {
-        btn.disabled = true;
-      }
-
-      contenedor.appendChild(btn);
-    });
-
-  } catch (error) {
-    console.error(error);
-    alert("Error al cargar disponibilidad");
-  }
+    contenedor.appendChild(btn);
+  });
 }
 
+// 🔐 RESERVAR (PROTEGIDO)
 async function reservar(fecha, hora) {
   const nombre = document.getElementById("nombre").value;
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    alert("Debes iniciar sesión primero");
+    return;
+  }
 
   if (!nombre) {
     alert("Introduce tu nombre");
     return;
   }
 
-  try {
-    const res = await fetch(`${API}/reservar`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ fecha, hora, nombre })
-    });
+  const res = await fetch(`${API}/reservar`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": token
+    },
+    body: JSON.stringify({ fecha, hora, nombre })
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    alert(data.mensaje || data.error);
+  alert(data.mensaje || data.error);
 
-    verDisponibilidad();
-
-  } catch (error) {
-    console.error(error);
-    alert("Error al reservar");
-  }
+  verDisponibilidad();
 }
 </script>
 
