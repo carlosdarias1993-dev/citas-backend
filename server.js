@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const connectDB = require("./config/db");
+const Reserva = require("./models/Reserva");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
