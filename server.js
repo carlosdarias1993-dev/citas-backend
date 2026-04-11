@@ -1,26 +1,30 @@
 const express = require("express");
 const cors = require("cors");
-const mongoose = require("mongoose");
 const connectDB = require("./config/db");
 const Reserva = require("./models/Reserva");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
+// Conectar Mongo
 connectDB();
 
+// Middlewares
 app.use(cors());
 app.use(express.json());
 
+// Horas disponibles
 const horas = [
   "09:00","10:00","11:00","12:00",
   "13:00","14:00","15:00","16:00","17:00"
 ];
 
+// Ruta raíz
 app.get("/", (req, res) => {
   res.send("Servidor funcionando 🚀");
 });
 
+// Disponibilidad
 app.get("/disponibilidad", async (req, res) => {
   const { fecha } = req.query;
 
@@ -41,6 +45,7 @@ app.get("/disponibilidad", async (req, res) => {
   res.json(resultado);
 });
 
+// Reservar
 app.post("/reservar", async (req, res) => {
   const { fecha, hora, nombre } = req.body;
 
@@ -60,6 +65,7 @@ app.post("/reservar", async (req, res) => {
   res.json({ mensaje: "Reserva guardada en BD 🔥" });
 });
 
+// Iniciar servidor
 app.listen(PORT, () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
