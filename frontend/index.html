@@ -70,6 +70,14 @@ button{
   border:none;
 }
 
+.switch{
+  font-size:12px;
+  margin-top:8px;
+  cursor:pointer;
+  text-align:center;
+  color:#aaa;
+}
+
 .dashboard{display:none;}
 
 .nav{
@@ -130,12 +138,24 @@ button{
 <div class="logo">💈 Barbería Elite</div>
 <div class="sub">Reserva tu turno online</div>
 
+<!-- LOGIN -->
 <div id="loginBox" class="login-box">
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
   <button onclick="login()">Entrar</button>
+  <div class="switch" onclick="mostrarRegistro()">Crear cuenta</div>
 </div>
 
+<!-- REGISTRO -->
+<div id="registerBox" class="login-box" style="display:none;">
+  <input id="nombreReg" placeholder="Nombre">
+  <input id="emailReg" placeholder="Email">
+  <input id="passwordReg" placeholder="Password">
+  <button onclick="register()">Registrarse</button>
+  <div class="switch" onclick="mostrarLogin()">Ya tengo cuenta</div>
+</div>
+
+<!-- DASHBOARD -->
 <div id="dashboard" class="dashboard">
 
   <div class="nav">
@@ -172,11 +192,43 @@ function toast(msg){
   setTimeout(()=>t.className="toast",3000);
 }
 
+// 🔄 CAMBIAR VISTAS
+function mostrarRegistro(){
+  loginBox.style.display="none";
+  registerBox.style.display="block";
+}
+
+function mostrarLogin(){
+  loginBox.style.display="block";
+  registerBox.style.display="none";
+}
+
+// REGISTRO
+async function register(){
+  const res=await fetch(`${API}/auth/register`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      nombre:nombreReg.value,
+      email:emailReg.value,
+      password:passwordReg.value
+    })
+  });
+
+  const data=await res.json();
+  toast("Cuenta creada");
+  mostrarLogin();
+}
+
+// LOGIN
 async function login(){
   const res=await fetch(`${API}/auth/login`,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({email:email.value,password:password.value})
+    body:JSON.stringify({
+      email:email.value,
+      password:password.value
+    })
   });
 
   const data=await res.json();
@@ -184,22 +236,18 @@ async function login(){
   if(data.token){
     localStorage.setItem("token",data.token);
     loginBox.style.display="none";
+    registerBox.style.display="none";
     dashboard.style.display="block";
     verMisCitas();
   } else toast("Error login");
 }
 
-function mostrarSeccion(s){
-  seccionReservar.style.display=s==="reservar"?"block":"none";
-  seccionCitas.style.display=s==="citas"?"block":"none";
-}
-
+// RESTO IGUAL (no cambia)
 async function verDisponibilidad(){
   const res=await fetch(`${API}/disponibilidad?fecha=${fecha.value}`);
   const data=await res.json();
 
   horas.innerHTML="";
-
   data.forEach(h=>{
     const b=document.createElement("button");
     b.textContent=h.hora;
