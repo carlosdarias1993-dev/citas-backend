@@ -17,15 +17,15 @@ body {
 
 .container {
   background: white;
-  padding: 30px;
+  padding: 25px;
   border-radius: 12px;
-  width: 320px;
+  width: 340px;
   text-align: center;
 }
 
 input, button {
   width: 100%;
-  margin: 10px 0;
+  margin: 8px 0;
   padding: 10px;
   border-radius: 6px;
   border: none;
@@ -38,15 +38,29 @@ button {
 }
 
 .hora {
-  background: red;
-  color: white;
-  margin: 5px 0;
   padding: 8px;
+  margin: 5px 0;
   cursor: pointer;
+  border-radius: 6px;
 }
 
-.hora.selected {
-  background: orange;
+.libre {
+  background: green;
+  color: white;
+}
+
+.ocupada {
+  background: red;
+  color: white;
+  cursor: not-allowed;
+}
+
+.selected {
+  background: orange !important;
+}
+
+.hidden {
+  display: none;
 }
 </style>
 </head>
@@ -62,17 +76,22 @@ button {
 </div>
 
 <!-- APP -->
-<div class="container" id="app" style="display:none;">
+<div class="container hidden" id="app">
+
   <h2>Reservar cita</h2>
 
-  <input type="date" id="fecha">
-  <input type="text" id="nombre" placeholder="Tu nombre">
+  <div id="formulario">
+    <input type="date" id="fecha">
+    <input type="text" id="nombre" placeholder="Tu nombre">
 
-  <button onclick="verHoras()">Ver disponibilidad</button>
+    <button onclick="verHoras()">Ver disponibilidad</button>
+  </div>
 
   <div id="horas"></div>
 
-  <button onclick="reservar()">Reservar</button>
+  <button id="btnReservar" class="hidden" onclick="reservar()">Reservar</button>
+
+  <button onclick="volver()">⬅ Volver</button>
 
   <hr>
 
@@ -80,6 +99,7 @@ button {
   <div id="misCitas"></div>
 
   <button onclick="logout()">Cerrar sesión</button>
+
 </div>
 
 <script>
@@ -103,10 +123,9 @@ async function login() {
 
   if (data.token) {
     localStorage.setItem("token", data.token);
-    localStorage.setItem("rol", data.rol);
 
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("app").style.display = "block";
+    document.getElementById("loginBox").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
 
     cargarMisCitas();
   } else {
@@ -115,22 +134,49 @@ async function login() {
 }
 
 // ================= VER HORAS =================
-function verHoras() {
+async function verHoras() {
+
+  const fecha = document.getElementById("fecha").value;
+  const nombre = document.getElementById("nombre").value;
+
+  if (!fecha || !nombre) {
+    alert("Debes llenar fecha y nombre");
+    return;
+  }
+
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/api/reservas?fecha=${fecha}`, {
+    headers: { "Authorization": token }
+  });
+
+  const reservas = await res.json();
+
+  const horasBase = ["09:00","10:00","11:00","12:00","13:00"];
+
   const cont = document.getElementById("horas");
   cont.innerHTML = "";
 
-  const horas = ["09:00","10:00","11:00","12:00","13:00"];
-
-  horas.forEach(h => {
+  horasBase.forEach(h => {
     const div = document.createElement("div");
-    div.className = "hora";
+
+    const ocupada = reservas.some(r => r.hora === h);
+
     div.innerText = h;
 
-    div.onclick = () => {
-      document.querySelectorAll(".hora").forEach(el => el.classList.remove("selected"));
-      div.classList.add("selected");
-      horaSeleccionada = h;
-    };
+    if (ocupada) {
+      div.className = "hora ocupada";
+    } else {
+      div.className = "hora libre";
+
+      div.onclick = () => {
+        document.querySelectorAll(".hora").forEach(el => el.classList.remove("selected"));
+        div.classList.add("selected");
+        horaSeleccionada = h;
+
+        document.getElementById("btnReservar").classList.remove("hidden");
+      };
+    }
 
     cont.appendChild(div);
   });
@@ -138,14 +184,10 @@ function verHoras() {
 
 // ================= RESERVAR =================
 async function reservar() {
+
   const fecha = document.getElementById("fecha").value;
   const nombre = document.getElementById("nombre").value;
   const token = localStorage.getItem("token");
-
-  if (!horaSeleccionada) {
-    alert("Selecciona una hora");
-    return;
-  }
 
   const res = await fetch(`${API}/api/reservas`, {
     method: "POST",
@@ -164,7 +206,13 @@ async function reservar() {
 
   if (res.ok) {
     alert("Reserva creada 🔥");
+
+    horaSeleccionada = "";
+    document.getElementById("btnReservar").classList.add("hidden");
+
+    verHoras();
     cargarMisCitas();
+
   } else {
     alert(data.error || "Error");
   }
@@ -172,12 +220,11 @@ async function reservar() {
 
 // ================= MIS CITAS =================
 async function cargarMisCitas() {
+
   const token = localStorage.getItem("token");
 
   const res = await fetch(`${API}/api/reservas/mis-citas`, {
-    headers: {
-      "Authorization": token
-    }
+    headers: { "Authorization": token }
   });
 
   const citas = await res.json();
@@ -192,6 +239,12 @@ async function cargarMisCitas() {
   });
 }
 
+// ================= VOLVER =================
+function volver() {
+  document.getElementById("horas").innerHTML = "";
+  document.getElementById("btnReservar").classList.add("hidden");
+}
+
 // ================= LOGOUT =================
 function logout() {
   localStorage.clear();
@@ -200,8 +253,8 @@ function logout() {
 
 // ================= AUTO LOGIN =================
 if (localStorage.getItem("token")) {
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("app").style.display = "block";
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
   cargarMisCitas();
 }
 
