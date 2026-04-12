@@ -1,235 +1,257 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Reservar cita</title>
+<meta charset="UTF-8">
+<title>Reservar cita</title>
 
-  <style>
-    body {
-      font-family: Arial;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      width: 340px;
-      text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #1e1e2f, #3a3a70);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      box-sizing: border-box;
-    }
+.container {
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 16px;
+  width: 360px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+  animation: fadeIn 0.6s ease;
+}
 
-    .hora {
-      margin: 5px;
-      padding: 10px;
-      border: none;
-      cursor: pointer;
-    }
+h2, h3 {
+  margin-bottom: 15px;
+  color: #333;
+}
 
-    .libre {
-      background: green;
-      color: white;
-    }
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  transition: 0.2s;
+}
 
-    .ocupado {
-      background: red;
-      color: white;
-    }
+input:focus {
+  border-color: #667eea;
+  outline: none;
+}
 
-    .login-box {
-      background: #222;
-      color: white;
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 15px;
-    }
+button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #667eea;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
 
-    .login-box input {
-      border-radius: 5px;
-      border: none;
-    }
+button:hover {
+  background: #5a67d8;
+  transform: scale(1.02);
+}
 
-    .login-box button {
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
+.login-box {
+  background: #1f1f2e;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
 
-    .switch {
-      color: #ccc;
-      font-size: 12px;
-      cursor: pointer;
-    }
+.login-box h3 {
+  color: white;
+}
 
-    .cita {
-      background: #eee;
-      margin: 5px;
-      padding: 8px;
-      border-radius: 5px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+.login-box input {
+  background: #2a2a40;
+  color: white;
+  border: none;
+}
 
-    .cita button {
-      width: auto;
-      background: red;
-      color: white;
-      border: none;
-      padding: 5px 8px;
-      cursor: pointer;
-    }
-  </style>
+.switch {
+  color: #aaa;
+  font-size: 12px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+
+.switch:hover {
+  color: white;
+}
+
+.hora {
+  margin: 5px 0;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+}
+
+.libre {
+  background: #28a745;
+  color: white;
+}
+
+.libre:hover {
+  background: #218838;
+}
+
+.ocupado {
+  background: #dc3545;
+  color: white;
+  cursor: not-allowed;
+}
+
+.cita {
+  background: #f1f1f1;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cita button {
+  background: #dc3545;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.cita button:hover {
+  background: #c82333;
+}
+
+.user-box {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.user-box p {
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: green;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+</style>
 </head>
+
 <body>
 
 <div class="container">
 
-  <!-- LOGIN -->
-  <div id="loginBox" class="login-box">
-    <h3>Login</h3>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="login()">Login</button>
-    <p class="switch" onclick="mostrarRegistro()">¿No tienes cuenta? Regístrate</p>
-  </div>
+<!-- LOGIN -->
+<div id="loginBox" class="login-box">
+  <h3>Login</h3>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Entrar</button>
+  <p class="switch" onclick="mostrarRegistro()">Crear cuenta</p>
+</div>
 
-  <!-- REGISTRO -->
-  <div id="registerBox" class="login-box" style="display:none;">
-    <h3>Registro</h3>
-    <input type="text" id="nombreReg" placeholder="Nombre">
-    <input type="email" id="emailReg" placeholder="Email">
-    <input type="password" id="passwordReg" placeholder="Password">
-    <button onclick="register()">Crear cuenta</button>
-    <p class="switch" onclick="mostrarLogin()">Ya tengo cuenta</p>
-  </div>
+<!-- REGISTRO -->
+<div id="registerBox" class="login-box" style="display:none;">
+  <h3>Registro</h3>
+  <input type="text" id="nombreReg" placeholder="Nombre">
+  <input type="email" id="emailReg" placeholder="Email">
+  <input type="password" id="passwordReg" placeholder="Password">
+  <button onclick="register()">Registrarse</button>
+  <p class="switch" onclick="mostrarLogin()">Ya tengo cuenta</p>
+</div>
 
-  <!-- USUARIO -->
-  <div id="userBox" style="display:none;">
-    <p>✅ Sesión iniciada</p>
-    <button onclick="verMisCitas()">Ver mis citas</button>
-    <button onclick="logout()">Cerrar sesión</button>
-  </div>
+<!-- USUARIO -->
+<div id="userBox" class="user-box" style="display:none;">
+  <p>✅ Sesión activa</p>
+  <button onclick="verMisCitas()">Mis citas</button>
+  <button onclick="logout()">Cerrar sesión</button>
+</div>
 
-  <!-- APP -->
-  <div id="appBox" style="display:none;">
-    <h2>Reservar cita</h2>
+<!-- APP -->
+<div id="appBox" style="display:none;">
+  <h2>Reservar cita</h2>
 
-    <input type="date" id="fecha">
-    <input type="text" id="nombre" placeholder="Tu nombre">
+  <input type="date" id="fecha">
+  <input type="text" id="nombre" placeholder="Tu nombre">
 
-    <button onclick="verDisponibilidad()">Ver disponibilidad</button>
+  <button onclick="verDisponibilidad()">Ver disponibilidad</button>
 
-    <div id="horas"></div>
+  <div id="horas"></div>
 
-    <h3>Mis citas</h3>
-    <div id="misCitas"></div>
-  </div>
+  <h3>Mis citas</h3>
+  <div id="misCitas"></div>
+</div>
 
 </div>
 
 <script>
-// 🔥 SOLO USAMOS RAILWAY
 const API = "https://citas-backend-production-6435.up.railway.app/api";
 
-// 🔄 CAMBIAR VISTAS
-function mostrarRegistro() {
-  loginBox.style.display = "none";
-  registerBox.style.display = "block";
-}
-
-function mostrarLogin() {
-  loginBox.style.display = "block";
-  registerBox.style.display = "none";
-}
-
-// 🆕 REGISTRO
-async function register() {
-  const nombre = nombreReg.value;
-  const email = emailReg.value;
-  const password = passwordReg.value;
-
-  const res = await fetch(`${API}/auth/register`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ nombre, email, password })
-  });
-
-  const data = await res.json();
-
-  if (data.mensaje || data._id) {
-    alert("Usuario creado 🔥");
-    mostrarLogin();
-  } else {
-    alert(data.error);
-  }
-}
-
-// 🔐 LOGIN
+// LOGIN
 async function login() {
-  const emailVal = email.value;
-  const passwordVal = password.value;
-
   const res = await fetch(`${API}/auth/login`, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ email: emailVal, password: passwordVal })
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      email: email.value,
+      password: password.value
+    })
   });
 
   const data = await res.json();
 
   if (data.token) {
     localStorage.setItem("token", data.token);
-
     loginBox.style.display = "none";
     registerBox.style.display = "none";
     userBox.style.display = "block";
     appBox.style.display = "block";
-
     verMisCitas();
   } else {
     alert(data.error);
   }
 }
 
-// 🔓 LOGOUT
-function logout() {
-  localStorage.removeItem("token");
+// REGISTRO
+async function register() {
+  const res = await fetch(`${API}/auth/register`, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      nombre: nombreReg.value,
+      email: emailReg.value,
+      password: passwordReg.value
+    })
+  });
 
-  loginBox.style.display = "block";
-  userBox.style.display = "none";
-  appBox.style.display = "none";
+  const data = await res.json();
+
+  alert("Usuario creado");
+  mostrarLogin();
 }
 
-// 🔄 AUTO LOGIN
-window.onload = () => {
-  const token = localStorage.getItem("token");
-
-  if (token) {
-    loginBox.style.display = "none";
-    userBox.style.display = "block";
-    appBox.style.display = "block";
-
-    verMisCitas();
-  }
-};
-
-// 📅 DISPONIBILIDAD
+// DISPONIBILIDAD
 async function verDisponibilidad() {
-  const fecha = document.getElementById("fecha").value;
+  const fechaVal = fecha.value;
 
-  const res = await fetch(`${API}/disponibilidad?fecha=${fecha}`);
+  const res = await fetch(`${API}/disponibilidad?fecha=${fechaVal}`);
   const data = await res.json();
 
   horas.innerHTML = "";
@@ -240,7 +262,7 @@ async function verDisponibilidad() {
     btn.className = `hora ${h.estado}`;
 
     if (h.estado === "libre") {
-      btn.onclick = () => reservar(fecha, h.hora);
+      btn.onclick = () => reservar(fechaVal, h.hora);
     } else {
       btn.disabled = true;
     }
@@ -249,38 +271,36 @@ async function verDisponibilidad() {
   });
 }
 
-// 🔐 RESERVAR
+// RESERVAR
 async function reservar(fecha, hora) {
-  const nombre = document.getElementById("nombre").value;
-  const token = localStorage.getItem("token");
-
   const res = await fetch(`${API}/reservar`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      "Authorization": token
+      "Content-Type":"application/json",
+      "Authorization": localStorage.getItem("token")
     },
-    body: JSON.stringify({ fecha, hora, nombre })
+    body: JSON.stringify({
+      fecha,
+      hora,
+      nombre: document.getElementById("nombre").value
+    })
   });
 
   const data = await res.json();
-
   alert(data.mensaje || data.error);
-
   verDisponibilidad();
   verMisCitas();
 }
 
-// 📋 MIS CITAS
+// MIS CITAS
 async function verMisCitas() {
-  const token = localStorage.getItem("token");
-
   const res = await fetch(`${API}/mis-citas`, {
-    headers: { "Authorization": token }
+    headers: {
+      "Authorization": localStorage.getItem("token")
+    }
   });
 
   const data = await res.json();
-
   misCitas.innerHTML = "";
 
   data.forEach(cita => {
@@ -288,7 +308,7 @@ async function verMisCitas() {
     div.className = "cita";
 
     div.innerHTML = `
-      <span>📅 ${cita.fecha} - ${cita.hora}</span>
+      ${cita.fecha} - ${cita.hora}
       <button onclick="cancelar('${cita._id}')">❌</button>
     `;
 
@@ -296,21 +316,44 @@ async function verMisCitas() {
   });
 }
 
-// ❌ CANCELAR
+// CANCELAR
 async function cancelar(id) {
-  const token = localStorage.getItem("token");
-
   const res = await fetch(`${API}/cancelar/${id}`, {
     method: "DELETE",
-    headers: { "Authorization": token }
+    headers: {
+      "Authorization": localStorage.getItem("token")
+    }
   });
 
   const data = await res.json();
-
-  alert(data.mensaje || data.error);
-
+  alert(data.mensaje);
   verMisCitas();
 }
+
+// UI
+function mostrarRegistro() {
+  loginBox.style.display = "none";
+  registerBox.style.display = "block";
+}
+
+function mostrarLogin() {
+  loginBox.style.display = "block";
+  registerBox.style.display = "none";
+}
+
+function logout() {
+  localStorage.removeItem("token");
+  location.reload();
+}
+
+window.onload = () => {
+  if (localStorage.getItem("token")) {
+    loginBox.style.display = "none";
+    userBox.style.display = "block";
+    appBox.style.display = "block";
+    verMisCitas();
+  }
+};
 </script>
 
 </body>
