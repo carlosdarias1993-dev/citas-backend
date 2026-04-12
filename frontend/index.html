@@ -1,277 +1,103 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Barbería Pro</title>
+  <meta charset="UTF-8">
+  <title>Barbería Pro</title>
 
-<style>
-body{
-  font-family:'Segoe UI';
-  background:linear-gradient(135deg,#667eea,#764ba2);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: linear-gradient(135deg, #4facfe, #8e44ad);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-.container{
-  background:white;
-  padding:20px;
-  border-radius:12px;
-  width:360px;
-}
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 300px;
+      text-align: center;
+    }
 
-h3{
-  text-align:center;
-}
+    input, button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+    }
 
-input{
-  width:100%;
-  padding:10px;
-  margin:5px 0;
-  border-radius:6px;
-  border:1px solid #ccc;
-}
-
-button{
-  width:100%;
-  padding:10px;
-  margin:5px 0;
-  border:none;
-  border-radius:6px;
-  background:#333;
-  color:white;
-  cursor:pointer;
-}
-
-button:hover{
-  background:#555;
-}
-
-.cita{
-  background:#eee;
-  padding:8px;
-  margin:5px 0;
-  border-radius:6px;
-}
-</style>
+    button {
+      background: black;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="container">
+<div class="container" id="loginBox">
+  <h2>Login</h2>
 
-<!-- LOGIN -->
-<div id="loginBox">
-  <h3>Login</h3>
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+
   <button onclick="login()">Entrar</button>
 </div>
 
-<!-- CLIENTE -->
-<div id="clientePanel" style="display:none;">
-  <h3>Reservar cita</h3>
-
-  <input type="date" id="fecha">
-  <input id="nombre" placeholder="Tu nombre">
-
-  <button onclick="verDisponibilidad()">Ver disponibilidad</button>
-
-  <div id="horas"></div>
-
-  <button onclick="confirmarReserva()">Reservar</button>
-
-  <h4>Mis citas</h4>
-  <div id="misCitas"></div>
+<div class="container" id="app" style="display:none;">
+  <h2>Bienvenido</h2>
+  <p id="rol"></p>
 
   <button onclick="logout()">Cerrar sesión</button>
-</div>
-
-<!-- BARBERO / ADMIN -->
-<div id="barberoPanel" style="display:none;">
-
-  <h3>Agenda del día</h3>
-
-  <input type="date" id="fechaBarbero">
-  <button onclick="verAgenda()">Ver agenda</button>
-
-  <div id="agenda"></div>
-
-  <hr>
-
-  <!-- ADMIN -->
-  <h3>Crear barbero</h3>
-
-  <input id="nuevoNombre" placeholder="Nombre">
-  <input id="nuevoEmail" placeholder="Email">
-  <input id="nuevoPassword" placeholder="Password">
-
-  <button onclick="crearBarbero()">Crear barbero</button>
-
-  <button onclick="logout()">Cerrar sesión</button>
-</div>
-
 </div>
 
 <script>
-const API="https://citas-backend-production-6435.up.railway.app/api";
 
-let horaSeleccionada=null;
+const API = "https://citas-backend-production-6435.up.railway.app";
 
-// 🔐 LOGIN
-async function login(){
-  const res = await fetch(`${API}/auth/login`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      email:email.value,
-      password:password.value
-    })
-  });
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-  const data = await res.json();
+  try {
+    const res = await fetch(`${API}/api/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password })
+    });
 
-  if(data.token){
-    localStorage.setItem("token",data.token);
-    localStorage.setItem("rol",data.rol);
+    const data = await res.json();
 
-    loginBox.style.display="none";
+    if (data.token) {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("rol", data.rol);
 
-    if(data.rol==="barbero"){
-      barberoPanel.style.display="block";
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("app").style.display = "block";
+
+      document.getElementById("rol").innerText = "Rol: " + data.rol;
+
     } else {
-      clientePanel.style.display="block";
-      verMisCitas();
+      alert(data.error || "Error en login");
     }
 
-  } else {
-    alert(data.error);
+  } catch (err) {
+    alert("Error de conexión");
   }
 }
 
-// 📅 DISPONIBILIDAD
-async function verDisponibilidad(){
-  const res=await fetch(`${API}/disponibilidad?fecha=${fecha.value}`);
-  const data=await res.json();
-
-  horas.innerHTML="";
-  horaSeleccionada=null;
-
-  data.forEach(h=>{
-    const btn=document.createElement("button");
-    btn.textContent=h.hora;
-
-    if(h.estado==="libre"){
-      btn.onclick=()=>{
-        horaSeleccionada=h.hora;
-        document.querySelectorAll("#horas button").forEach(b=>b.style.background="");
-        btn.style.background="yellow";
-      }
-    } else {
-      btn.disabled=true;
-      btn.style.background="red";
-      btn.style.color="white";
-    }
-
-    horas.appendChild(btn);
-  });
-}
-
-// 🔐 RESERVAR
-async function confirmarReserva(){
-  if(!horaSeleccionada){
-    alert("Selecciona una hora");
-    return;
-  }
-
-  const res=await fetch(`${API}/reservar`,{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":localStorage.getItem("token")
-    },
-    body:JSON.stringify({
-      fecha:fecha.value,
-      hora:horaSeleccionada,
-      nombre:nombre.value
-    })
-  });
-
-  const data=await res.json();
-
-  alert(data.mensaje || data.error);
-
-  verDisponibilidad();
-  verMisCitas();
-}
-
-// 📋 MIS CITAS
-async function verMisCitas(){
-  const res=await fetch(`${API}/mis-citas`,{
-    headers:{
-      "Authorization":localStorage.getItem("token")
-    }
-  });
-
-  const data=await res.json();
-
-  misCitas.innerHTML="";
-
-  data.forEach(c=>{
-    const div=document.createElement("div");
-    div.className="cita";
-    div.textContent=`${c.fecha} - ${c.hora}`;
-    misCitas.appendChild(div);
-  });
-}
-
-// 💈 AGENDA
-async function verAgenda(){
-  const res=await fetch(`${API}/agenda?fecha=${fechaBarbero.value}`,{
-    headers:{
-      "Authorization":localStorage.getItem("token")
-    }
-  });
-
-  const data=await res.json();
-
-  agenda.innerHTML="";
-
-  data.forEach(c=>{
-    const div=document.createElement("div");
-    div.className="cita";
-    div.textContent=`${c.hora} - ${c.nombre}`;
-    agenda.appendChild(div);
-  });
-}
-
-// 🧠 ADMIN - CREAR BARBERO
-async function crearBarbero(){
-  const res = await fetch(`${API}/admin/crear-barbero`,{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":localStorage.getItem("token")
-    },
-    body:JSON.stringify({
-      nombre:nuevoNombre.value,
-      email:nuevoEmail.value,
-      password:nuevoPassword.value
-    })
-  });
-
-  const data = await res.json();
-
-  alert(data.mensaje || data.error);
-}
-
-// 🔓 LOGOUT
-function logout(){
-  localStorage.removeItem("token");
-  localStorage.removeItem("rol");
+function logout() {
+  localStorage.clear();
   location.reload();
 }
+
 </script>
 
 </body>
