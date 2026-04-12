@@ -5,152 +5,115 @@
 <title>Reservar cita</title>
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin:0; padding:0; box-sizing:border-box; }
 
 body {
   font-family: 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #1e1e2f, #3a3a70);
   height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
 
 .container {
-  background: #ffffff;
-  padding: 30px;
-  border-radius: 16px;
-  width: 360px;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-  animation: fadeIn 0.6s ease;
+  background:#fff;
+  padding:30px;
+  border-radius:16px;
+  width:360px;
+  box-shadow:0 15px 40px rgba(0,0,0,0.3);
 }
 
-h2, h3 {
-  margin-bottom: 15px;
-  color: #333;
-}
+h2,h3 { margin-bottom:15px; }
 
 input {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 12px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  transition: 0.2s;
-}
-
-input:focus {
-  border-color: #667eea;
-  outline: none;
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  border-radius:8px;
+  border:1px solid #ddd;
 }
 
 button {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  background: #667eea;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s;
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  background:#667eea;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.2s;
 }
 
-button:hover {
-  background: #5a67d8;
-  transform: scale(1.02);
-}
+button:hover { transform:scale(1.02); }
 
 .login-box {
-  background: #1f1f2e;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-}
-
-.login-box h3 {
-  color: white;
+  background:#1f1f2e;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:20px;
+  color:white;
 }
 
 .login-box input {
-  background: #2a2a40;
-  color: white;
-  border: none;
+  background:#2a2a40;
+  color:white;
+  border:none;
 }
 
 .switch {
-  color: #aaa;
-  font-size: 12px;
-  margin-top: 5px;
-  cursor: pointer;
+  font-size:12px;
+  margin-top:5px;
+  cursor:pointer;
+  color:#aaa;
 }
 
-.switch:hover {
-  color: white;
-}
-
-.hora {
-  margin: 5px 0;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  font-weight: bold;
-}
-
-.libre {
-  background: #28a745;
-  color: white;
-}
-
-.libre:hover {
-  background: #218838;
-}
-
-.ocupado {
-  background: #dc3545;
-  color: white;
-  cursor: not-allowed;
-}
+.hora { margin:5px 0; border-radius:8px; }
+.libre { background:#28a745; }
+.ocupado { background:#dc3545; cursor:not-allowed; }
 
 .cita {
-  background: #f1f1f1;
-  padding: 10px;
-  border-radius: 8px;
-  margin-top: 6px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  background:#f1f1f1;
+  padding:10px;
+  border-radius:8px;
+  margin-top:6px;
+  display:flex;
+  justify-content:space-between;
 }
 
 .cita button {
-  background: #dc3545;
-  padding: 6px 10px;
-  font-size: 12px;
-}
-
-.cita button:hover {
-  background: #c82333;
+  background:#dc3545;
+  padding:5px 8px;
 }
 
 .user-box {
-  text-align: center;
-  margin-bottom: 15px;
+  text-align:center;
+  margin-bottom:15px;
 }
 
-.user-box p {
-  margin-bottom: 10px;
-  font-weight: bold;
-  color: green;
+/* 🔥 NOTIFICACIONES */
+.toast {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#333;
+  color:white;
+  padding:12px 18px;
+  border-radius:8px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:0.3s;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px);}
-  to { opacity: 1; transform: translateY(0);}
+.toast.show {
+  opacity:1;
+  transform:translateY(0);
 }
+
+.success { background:#28a745; }
+.error { background:#dc3545; }
+
 </style>
 </head>
 
@@ -158,7 +121,6 @@ button:hover {
 
 <div class="container">
 
-<!-- LOGIN -->
 <div id="loginBox" class="login-box">
   <h3>Login</h3>
   <input type="email" id="email" placeholder="Email">
@@ -167,24 +129,21 @@ button:hover {
   <p class="switch" onclick="mostrarRegistro()">Crear cuenta</p>
 </div>
 
-<!-- REGISTRO -->
 <div id="registerBox" class="login-box" style="display:none;">
   <h3>Registro</h3>
-  <input type="text" id="nombreReg" placeholder="Nombre">
-  <input type="email" id="emailReg" placeholder="Email">
-  <input type="password" id="passwordReg" placeholder="Password">
+  <input id="nombreReg" placeholder="Nombre">
+  <input id="emailReg" placeholder="Email">
+  <input id="passwordReg" placeholder="Password">
   <button onclick="register()">Registrarse</button>
   <p class="switch" onclick="mostrarLogin()">Ya tengo cuenta</p>
 </div>
 
-<!-- USUARIO -->
 <div id="userBox" class="user-box" style="display:none;">
   <p>✅ Sesión activa</p>
   <button onclick="verMisCitas()">Mis citas</button>
   <button onclick="logout()">Cerrar sesión</button>
 </div>
 
-<!-- APP -->
 <div id="appBox" style="display:none;">
   <h2>Reservar cita</h2>
 
@@ -201,15 +160,29 @@ button:hover {
 
 </div>
 
+<!-- 🔥 TOAST -->
+<div id="toast" class="toast"></div>
+
 <script>
 const API = "https://citas-backend-production-6435.up.railway.app/api";
+
+// 🔥 NOTIFICACIONES
+function mostrarToast(mensaje, tipo="success") {
+  const toast = document.getElementById("toast");
+  toast.className = `toast show ${tipo}`;
+  toast.textContent = mensaje;
+
+  setTimeout(() => {
+    toast.className = "toast";
+  }, 3000);
+}
 
 // LOGIN
 async function login() {
   const res = await fetch(`${API}/auth/login`, {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
       email: email.value,
       password: password.value
     })
@@ -217,54 +190,50 @@ async function login() {
 
   const data = await res.json();
 
-  if (data.token) {
+  if(data.token){
     localStorage.setItem("token", data.token);
-    loginBox.style.display = "none";
-    registerBox.style.display = "none";
-    userBox.style.display = "block";
-    appBox.style.display = "block";
+    loginBox.style.display="none";
+    userBox.style.display="block";
+    appBox.style.display="block";
     verMisCitas();
+    mostrarToast("Bienvenido 🔥");
   } else {
-    alert(data.error);
+    mostrarToast(data.error,"error");
   }
 }
 
 // REGISTRO
-async function register() {
-  const res = await fetch(`${API}/auth/register`, {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      nombre: nombreReg.value,
-      email: emailReg.value,
-      password: passwordReg.value
+async function register(){
+  const res = await fetch(`${API}/auth/register`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      nombre:nombreReg.value,
+      email:emailReg.value,
+      password:passwordReg.value
     })
   });
 
-  const data = await res.json();
-
-  alert("Usuario creado");
+  mostrarToast("Cuenta creada");
   mostrarLogin();
 }
 
 // DISPONIBILIDAD
-async function verDisponibilidad() {
-  const fechaVal = fecha.value;
-
-  const res = await fetch(`${API}/disponibilidad?fecha=${fechaVal}`);
+async function verDisponibilidad(){
+  const res = await fetch(`${API}/disponibilidad?fecha=${fecha.value}`);
   const data = await res.json();
 
-  horas.innerHTML = "";
+  horas.innerHTML="";
 
-  data.forEach(h => {
-    const btn = document.createElement("button");
-    btn.textContent = h.hora;
-    btn.className = `hora ${h.estado}`;
+  data.forEach(h=>{
+    const btn=document.createElement("button");
+    btn.textContent=h.hora;
+    btn.className=`hora ${h.estado}`;
 
-    if (h.estado === "libre") {
-      btn.onclick = () => reservar(fechaVal, h.hora);
+    if(h.estado==="libre"){
+      btn.onclick=()=>reservar(fecha.value,h.hora);
     } else {
-      btn.disabled = true;
+      btn.disabled=true;
     }
 
     horas.appendChild(btn);
@@ -272,42 +241,41 @@ async function verDisponibilidad() {
 }
 
 // RESERVAR
-async function reservar(fecha, hora) {
-  const res = await fetch(`${API}/reservar`, {
-    method: "POST",
-    headers: {
+async function reservar(fechaVal,hora){
+  const res = await fetch(`${API}/reservar`,{
+    method:"POST",
+    headers:{
       "Content-Type":"application/json",
-      "Authorization": localStorage.getItem("token")
+      "Authorization":localStorage.getItem("token")
     },
-    body: JSON.stringify({
-      fecha,
+    body:JSON.stringify({
+      fecha:fechaVal,
       hora,
-      nombre: document.getElementById("nombre").value
+      nombre:document.getElementById("nombre").value
     })
   });
 
-  const data = await res.json();
-  alert(data.mensaje || data.error);
+  const data=await res.json();
+  mostrarToast(data.mensaje || data.error, data.error?"error":"success");
+
   verDisponibilidad();
   verMisCitas();
 }
 
 // MIS CITAS
-async function verMisCitas() {
-  const res = await fetch(`${API}/mis-citas`, {
-    headers: {
-      "Authorization": localStorage.getItem("token")
-    }
+async function verMisCitas(){
+  const res = await fetch(`${API}/mis-citas`,{
+    headers:{"Authorization":localStorage.getItem("token")}
   });
 
-  const data = await res.json();
-  misCitas.innerHTML = "";
+  const data=await res.json();
+  misCitas.innerHTML="";
 
-  data.forEach(cita => {
-    const div = document.createElement("div");
-    div.className = "cita";
+  data.forEach(cita=>{
+    const div=document.createElement("div");
+    div.className="cita";
 
-    div.innerHTML = `
+    div.innerHTML=`
       ${cita.fecha} - ${cita.hora}
       <button onclick="cancelar('${cita._id}')">❌</button>
     `;
@@ -317,40 +285,32 @@ async function verMisCitas() {
 }
 
 // CANCELAR
-async function cancelar(id) {
-  const res = await fetch(`${API}/cancelar/${id}`, {
-    method: "DELETE",
-    headers: {
-      "Authorization": localStorage.getItem("token")
-    }
+async function cancelar(id){
+  const res = await fetch(`${API}/cancelar/${id}`,{
+    method:"DELETE",
+    headers:{"Authorization":localStorage.getItem("token")}
   });
 
-  const data = await res.json();
-  alert(data.mensaje);
+  const data=await res.json();
+  mostrarToast(data.mensaje);
+
   verMisCitas();
 }
 
 // UI
-function mostrarRegistro() {
-  loginBox.style.display = "none";
-  registerBox.style.display = "block";
-}
+function mostrarRegistro(){ loginBox.style.display="none"; registerBox.style.display="block"; }
+function mostrarLogin(){ loginBox.style.display="block"; registerBox.style.display="none"; }
 
-function mostrarLogin() {
-  loginBox.style.display = "block";
-  registerBox.style.display = "none";
-}
-
-function logout() {
+function logout(){
   localStorage.removeItem("token");
   location.reload();
 }
 
-window.onload = () => {
-  if (localStorage.getItem("token")) {
-    loginBox.style.display = "none";
-    userBox.style.display = "block";
-    appBox.style.display = "block";
+window.onload=()=>{
+  if(localStorage.getItem("token")){
+    loginBox.style.display="none";
+    userBox.style.display="block";
+    appBox.style.display="block";
     verMisCitas();
   }
 };
