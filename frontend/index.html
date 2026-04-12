@@ -2,13 +2,12 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Barbería Elite</title>
+<title>Barbería Pro</title>
 
 <style>
 body{
   font-family:'Segoe UI';
-  background:#1e1e2f;
-  color:white;
+  background:linear-gradient(135deg,#667eea,#764ba2);
   display:flex;
   justify-content:center;
   align-items:center;
@@ -17,22 +16,36 @@ body{
 
 .container{
   background:white;
-  color:black;
   padding:20px;
   border-radius:12px;
-  width:350px;
+  width:360px;
+}
+
+h3{
+  text-align:center;
 }
 
 input{
   width:100%;
   padding:10px;
   margin:5px 0;
+  border-radius:6px;
+  border:1px solid #ccc;
 }
 
 button{
   width:100%;
   padding:10px;
   margin:5px 0;
+  border:none;
+  border-radius:6px;
+  background:#333;
+  color:white;
+  cursor:pointer;
+}
+
+button:hover{
+  background:#555;
 }
 
 .cita{
@@ -58,12 +71,12 @@ button{
 
 <!-- CLIENTE -->
 <div id="clientePanel" style="display:none;">
-  <h3>Reservar</h3>
+  <h3>Reservar cita</h3>
 
   <input type="date" id="fecha">
-  <input id="nombre" placeholder="Nombre">
+  <input id="nombre" placeholder="Tu nombre">
 
-  <button onclick="verDisponibilidad()">Ver horas</button>
+  <button onclick="verDisponibilidad()">Ver disponibilidad</button>
 
   <div id="horas"></div>
 
@@ -72,11 +85,12 @@ button{
   <h4>Mis citas</h4>
   <div id="misCitas"></div>
 
-  <button onclick="logout()">Salir</button>
+  <button onclick="logout()">Cerrar sesión</button>
 </div>
 
-<!-- BARBERO -->
+<!-- BARBERO / ADMIN -->
 <div id="barberoPanel" style="display:none;">
+
   <h3>Agenda del día</h3>
 
   <input type="date" id="fechaBarbero">
@@ -84,7 +98,18 @@ button{
 
   <div id="agenda"></div>
 
-  <button onclick="logout()">Salir</button>
+  <hr>
+
+  <!-- ADMIN -->
+  <h3>Crear barbero</h3>
+
+  <input id="nuevoNombre" placeholder="Nombre">
+  <input id="nuevoEmail" placeholder="Email">
+  <input id="nuevoPassword" placeholder="Password">
+
+  <button onclick="crearBarbero()">Crear barbero</button>
+
+  <button onclick="logout()">Cerrar sesión</button>
 </div>
 
 </div>
@@ -94,7 +119,7 @@ const API="https://citas-backend-production-6435.up.railway.app/api";
 
 let horaSeleccionada=null;
 
-// 🔐 LOGIN CON ROLES
+// 🔐 LOGIN
 async function login(){
   const res = await fetch(`${API}/auth/login`,{
     method:"POST",
@@ -153,7 +178,7 @@ async function verDisponibilidad(){
   });
 }
 
-// 🔐 CONFIRMAR RESERVA
+// 🔐 RESERVAR
 async function confirmarReserva(){
   if(!horaSeleccionada){
     alert("Selecciona una hora");
@@ -201,7 +226,7 @@ async function verMisCitas(){
   });
 }
 
-// 💈 AGENDA BARBERO
+// 💈 AGENDA
 async function verAgenda(){
   const res=await fetch(`${API}/agenda?fecha=${fechaBarbero.value}`,{
     headers:{
@@ -219,6 +244,26 @@ async function verAgenda(){
     div.textContent=`${c.hora} - ${c.nombre}`;
     agenda.appendChild(div);
   });
+}
+
+// 🧠 ADMIN - CREAR BARBERO
+async function crearBarbero(){
+  const res = await fetch(`${API}/admin/crear-barbero`,{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":localStorage.getItem("token")
+    },
+    body:JSON.stringify({
+      nombre:nuevoNombre.value,
+      email:nuevoEmail.value,
+      password:nuevoPassword.value
+    })
+  });
+
+  const data = await res.json();
+
+  alert(data.mensaje || data.error);
 }
 
 // 🔓 LOGOUT

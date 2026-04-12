@@ -1,32 +1,33 @@
-require("dotenv").config();
+try {
+  require("dotenv").config();
+} catch (e) {}
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
 const app = express();
 
-// MIDDLEWARES
 app.use(cors());
 app.use(express.json());
 
-// 🔗 RUTAS
+// RUTAS
 const authRoutes = require("./routes/auth");
 const reservasRoutes = require("./routes/reservas");
+const adminRoutes = require("./routes/admin");
 
 app.use("/api/auth", authRoutes);
 app.use("/api", reservasRoutes);
+app.use("/api/admin", adminRoutes);
 
-// TEST
 app.get("/", (req, res) => {
   res.send("API funcionando 🚀");
 });
 
-// DB
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("Mongo conectado"))
 .catch(err => console.log(err));
 
-// SERVER
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
