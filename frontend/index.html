@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Reservar cita</title>
+<title>App de Citas</title>
 
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -10,30 +10,34 @@
 body {
   font-family: 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #1e1e2f, #3a3a70);
-  height: 100vh;
+  height:100vh;
   display:flex;
   justify-content:center;
   align-items:center;
 }
 
+/* CONTENEDOR */
 .container {
-  background:#fff;
-  padding:30px;
+  width:400px;
+  background:white;
   border-radius:16px;
-  width:360px;
-  box-shadow:0 15px 40px rgba(0,0,0,0.3);
+  padding:25px;
+  box-shadow:0 20px 50px rgba(0,0,0,0.3);
 }
 
-h2,h3 { margin-bottom:15px; }
+/* TITULOS */
+h2 { margin-bottom:15px; }
 
+/* INPUTS */
 input {
   width:100%;
   padding:12px;
-  margin-bottom:12px;
+  margin-bottom:10px;
   border-radius:8px;
   border:1px solid #ddd;
 }
 
+/* BOTONES */
 button {
   width:100%;
   padding:12px;
@@ -43,16 +47,15 @@ button {
   color:white;
   font-weight:bold;
   cursor:pointer;
-  transition:0.2s;
 }
 
-button:hover { transform:scale(1.02); }
+button:hover { background:#5a67d8; }
 
+/* LOGIN */
 .login-box {
   background:#1f1f2e;
   padding:20px;
   border-radius:12px;
-  margin-bottom:20px;
   color:white;
 }
 
@@ -62,57 +65,65 @@ button:hover { transform:scale(1.02); }
   border:none;
 }
 
-.switch {
-  font-size:12px;
-  margin-top:5px;
-  cursor:pointer;
-  color:#aaa;
+/* DASHBOARD */
+.dashboard {
+  display:none;
 }
 
-.hora { margin:5px 0; border-radius:8px; }
-.libre { background:#28a745; }
-.ocupado { background:#dc3545; cursor:not-allowed; }
+/* NAV */
+.nav {
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:15px;
+}
 
-.cita {
-  background:#f1f1f1;
+.nav button {
+  width:48%;
+  background:#eee;
+  color:#333;
+}
+
+.nav button.active {
+  background:#667eea;
+  color:white;
+}
+
+/* HORAS */
+.hora {
+  margin:5px 0;
   padding:10px;
   border-radius:8px;
-  margin-top:6px;
+}
+
+.libre { background:green; color:white; }
+.ocupado { background:red; color:white; }
+
+/* CITAS */
+.cita {
+  background:#f2f2f2;
+  padding:10px;
+  border-radius:8px;
+  margin-bottom:5px;
   display:flex;
   justify-content:space-between;
 }
 
-.cita button {
-  background:#dc3545;
-  padding:5px 8px;
-}
-
-.user-box {
-  text-align:center;
-  margin-bottom:15px;
-}
-
-/* 🔥 NOTIFICACIONES */
+/* TOAST */
 .toast {
   position:fixed;
   bottom:20px;
   right:20px;
   background:#333;
   color:white;
-  padding:12px 18px;
-  border-radius:8px;
+  padding:10px;
+  border-radius:6px;
   opacity:0;
-  transform:translateY(20px);
   transition:0.3s;
 }
 
-.toast.show {
-  opacity:1;
-  transform:translateY(0);
-}
-
-.success { background:#28a745; }
-.error { background:#dc3545; }
+.toast.show { opacity:1; }
+.success { background:green; }
+.error { background:red; }
 
 </style>
 </head>
@@ -121,101 +132,90 @@ button:hover { transform:scale(1.02); }
 
 <div class="container">
 
+<!-- LOGIN -->
 <div id="loginBox" class="login-box">
-  <h3>Login</h3>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Password">
+  <h2>Login</h2>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
   <button onclick="login()">Entrar</button>
-  <p class="switch" onclick="mostrarRegistro()">Crear cuenta</p>
 </div>
 
-<div id="registerBox" class="login-box" style="display:none;">
-  <h3>Registro</h3>
-  <input id="nombreReg" placeholder="Nombre">
-  <input id="emailReg" placeholder="Email">
-  <input id="passwordReg" placeholder="Password">
-  <button onclick="register()">Registrarse</button>
-  <p class="switch" onclick="mostrarLogin()">Ya tengo cuenta</p>
-</div>
+<!-- DASHBOARD -->
+<div id="dashboard" class="dashboard">
 
-<div id="userBox" class="user-box" style="display:none;">
-  <p>✅ Sesión activa</p>
-  <button onclick="verMisCitas()">Mis citas</button>
+  <div class="nav">
+    <button id="btnReservar" onclick="mostrarSeccion('reservar')" class="active">Reservar</button>
+    <button id="btnCitas" onclick="mostrarSeccion('citas')">Mis citas</button>
+  </div>
+
+  <!-- RESERVAR -->
+  <div id="seccionReservar">
+    <h2>Nueva cita</h2>
+
+    <input type="date" id="fecha">
+    <input id="nombre" placeholder="Tu nombre">
+
+    <button onclick="verDisponibilidad()">Ver horas</button>
+
+    <div id="horas"></div>
+  </div>
+
+  <!-- MIS CITAS -->
+  <div id="seccionCitas" style="display:none;">
+    <h2>Mis citas</h2>
+    <div id="misCitas"></div>
+  </div>
+
   <button onclick="logout()">Cerrar sesión</button>
-</div>
 
-<div id="appBox" style="display:none;">
-  <h2>Reservar cita</h2>
-
-  <input type="date" id="fecha">
-  <input type="text" id="nombre" placeholder="Tu nombre">
-
-  <button onclick="verDisponibilidad()">Ver disponibilidad</button>
-
-  <div id="horas"></div>
-
-  <h3>Mis citas</h3>
-  <div id="misCitas"></div>
 </div>
 
 </div>
 
-<!-- 🔥 TOAST -->
 <div id="toast" class="toast"></div>
 
 <script>
 const API = "https://citas-backend-production-6435.up.railway.app/api";
 
-// 🔥 NOTIFICACIONES
-function mostrarToast(mensaje, tipo="success") {
-  const toast = document.getElementById("toast");
-  toast.className = `toast show ${tipo}`;
-  toast.textContent = mensaje;
-
-  setTimeout(() => {
-    toast.className = "toast";
-  }, 3000);
+// 🔥 TOAST
+function toast(msg,type="success"){
+  const t=document.getElementById("toast");
+  t.className=`toast show ${type}`;
+  t.textContent=msg;
+  setTimeout(()=>t.className="toast",3000);
 }
 
 // LOGIN
-async function login() {
-  const res = await fetch(`${API}/auth/login`, {
+async function login(){
+  const res = await fetch(`${API}/auth/login`,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
-      email: email.value,
-      password: password.value
+      email:email.value,
+      password:password.value
     })
   });
 
   const data = await res.json();
 
   if(data.token){
-    localStorage.setItem("token", data.token);
+    localStorage.setItem("token",data.token);
     loginBox.style.display="none";
-    userBox.style.display="block";
-    appBox.style.display="block";
+    dashboard.style.display="block";
     verMisCitas();
-    mostrarToast("Bienvenido 🔥");
+    toast("Bienvenido");
   } else {
-    mostrarToast(data.error,"error");
+    toast(data.error,"error");
   }
 }
 
-// REGISTRO
-async function register(){
-  const res = await fetch(`${API}/auth/register`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      nombre:nombreReg.value,
-      email:emailReg.value,
-      password:passwordReg.value
-    })
-  });
+// CAMBIAR SECCIONES
+function mostrarSeccion(seccion){
+  seccionReservar.style.display = seccion==="reservar"?"block":"none";
+  seccionCitas.style.display = seccion==="citas"?"block":"none";
 
-  mostrarToast("Cuenta creada");
-  mostrarLogin();
+  btnReservar.classList.toggle("active",seccion==="reservar");
+  btnCitas.classList.toggle("active",seccion==="citas");
 }
 
 // DISPONIBILIDAD
@@ -232,8 +232,6 @@ async function verDisponibilidad(){
 
     if(h.estado==="libre"){
       btn.onclick=()=>reservar(fecha.value,h.hora);
-    } else {
-      btn.disabled=true;
     }
 
     horas.appendChild(btn);
@@ -256,7 +254,7 @@ async function reservar(fechaVal,hora){
   });
 
   const data=await res.json();
-  mostrarToast(data.mensaje || data.error, data.error?"error":"success");
+  toast(data.mensaje || data.error);
 
   verDisponibilidad();
   verMisCitas();
@@ -265,19 +263,21 @@ async function reservar(fechaVal,hora){
 // MIS CITAS
 async function verMisCitas(){
   const res = await fetch(`${API}/mis-citas`,{
-    headers:{"Authorization":localStorage.getItem("token")}
+    headers:{
+      "Authorization":localStorage.getItem("token")
+    }
   });
 
   const data=await res.json();
   misCitas.innerHTML="";
 
-  data.forEach(cita=>{
+  data.forEach(c=>{
     const div=document.createElement("div");
     div.className="cita";
 
     div.innerHTML=`
-      ${cita.fecha} - ${cita.hora}
-      <button onclick="cancelar('${cita._id}')">❌</button>
+      ${c.fecha} - ${c.hora}
+      <button onclick="cancelar('${c._id}')">❌</button>
     `;
 
     misCitas.appendChild(div);
@@ -288,29 +288,28 @@ async function verMisCitas(){
 async function cancelar(id){
   const res = await fetch(`${API}/cancelar/${id}`,{
     method:"DELETE",
-    headers:{"Authorization":localStorage.getItem("token")}
+    headers:{
+      "Authorization":localStorage.getItem("token")
+    }
   });
 
   const data=await res.json();
-  mostrarToast(data.mensaje);
+  toast(data.mensaje);
 
   verMisCitas();
 }
 
-// UI
-function mostrarRegistro(){ loginBox.style.display="none"; registerBox.style.display="block"; }
-function mostrarLogin(){ loginBox.style.display="block"; registerBox.style.display="none"; }
-
+// LOGOUT
 function logout(){
   localStorage.removeItem("token");
   location.reload();
 }
 
+// AUTO LOGIN
 window.onload=()=>{
   if(localStorage.getItem("token")){
     loginBox.style.display="none";
-    userBox.style.display="block";
-    appBox.style.display="block";
+    dashboard.style.display="block";
     verMisCitas();
   }
 };
