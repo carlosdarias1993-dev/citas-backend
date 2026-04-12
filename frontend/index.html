@@ -1,57 +1,83 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Barbería Pro</title>
+<meta charset="UTF-8">
+<title>Barbería Pro</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: linear-gradient(135deg, #4facfe, #8e44ad);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: linear-gradient(135deg, #4facfe, #8e44ad);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      width: 300px;
-      text-align: center;
-    }
+.container {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 320px;
+  text-align: center;
+}
 
-    input, button {
-      width: 100%;
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
-    }
+input, button {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+}
 
-    button {
-      background: black;
-      color: white;
-      cursor: pointer;
-    }
-  </style>
+button {
+  background: black;
+  color: white;
+  cursor: pointer;
+}
+
+.hora {
+  background: red;
+  color: white;
+  margin: 5px 0;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.hora.selected {
+  background: orange;
+}
+</style>
 </head>
+
 <body>
 
+<!-- LOGIN -->
 <div class="container" id="loginBox">
   <h2>Login</h2>
-
   <input type="email" id="email" placeholder="Email">
   <input type="password" id="password" placeholder="Password">
-
   <button onclick="login()">Entrar</button>
 </div>
 
+<!-- APP -->
 <div class="container" id="app" style="display:none;">
-  <h2>Bienvenido</h2>
-  <p id="rol"></p>
+  <h2>Reservar cita</h2>
+
+  <input type="date" id="fecha">
+  <input type="text" id="nombre" placeholder="Tu nombre">
+
+  <button onclick="verHoras()">Ver disponibilidad</button>
+
+  <div id="horas"></div>
+
+  <button onclick="reservar()">Reservar</button>
+
+  <hr>
+
+  <h3>Mis citas</h3>
+  <div id="misCitas"></div>
 
   <button onclick="logout()">Cerrar sesión</button>
 </div>
@@ -60,42 +86,123 @@
 
 const API = "https://citas-backend-production-6435.up.railway.app";
 
+let horaSeleccionada = "";
+
+// ================= LOGIN =================
 async function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  try {
-    const res = await fetch(`${API}/api/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, password })
-    });
+  const res = await fetch(`${API}/api/auth/login`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ email, password })
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    if (data.token) {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("rol", data.rol);
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("rol", data.rol);
 
-      document.getElementById("loginBox").style.display = "none";
-      document.getElementById("app").style.display = "block";
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("app").style.display = "block";
 
-      document.getElementById("rol").innerText = "Rol: " + data.rol;
-
-    } else {
-      alert(data.error || "Error en login");
-    }
-
-  } catch (err) {
-    alert("Error de conexión");
+    cargarMisCitas();
+  } else {
+    alert(data.error || "Error en login");
   }
 }
 
+// ================= VER HORAS =================
+function verHoras() {
+  const cont = document.getElementById("horas");
+  cont.innerHTML = "";
+
+  const horas = ["09:00","10:00","11:00","12:00","13:00"];
+
+  horas.forEach(h => {
+    const div = document.createElement("div");
+    div.className = "hora";
+    div.innerText = h;
+
+    div.onclick = () => {
+      document.querySelectorAll(".hora").forEach(el => el.classList.remove("selected"));
+      div.classList.add("selected");
+      horaSeleccionada = h;
+    };
+
+    cont.appendChild(div);
+  });
+}
+
+// ================= RESERVAR =================
+async function reservar() {
+  const fecha = document.getElementById("fecha").value;
+  const nombre = document.getElementById("nombre").value;
+  const token = localStorage.getItem("token");
+
+  if (!horaSeleccionada) {
+    alert("Selecciona una hora");
+    return;
+  }
+
+  const res = await fetch(`${API}/api/reservas`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": token
+    },
+    body: JSON.stringify({
+      nombre,
+      fecha,
+      hora: horaSeleccionada
+    })
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    alert("Reserva creada 🔥");
+    cargarMisCitas();
+  } else {
+    alert(data.error || "Error");
+  }
+}
+
+// ================= MIS CITAS =================
+async function cargarMisCitas() {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/api/reservas/mis-citas`, {
+    headers: {
+      "Authorization": token
+    }
+  });
+
+  const citas = await res.json();
+
+  const cont = document.getElementById("misCitas");
+  cont.innerHTML = "";
+
+  citas.forEach(c => {
+    const div = document.createElement("div");
+    div.innerText = `${c.fecha} - ${c.hora}`;
+    cont.appendChild(div);
+  });
+}
+
+// ================= LOGOUT =================
 function logout() {
   localStorage.clear();
   location.reload();
+}
+
+// ================= AUTO LOGIN =================
+if (localStorage.getItem("token")) {
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  cargarMisCitas();
 }
 
 </script>
