@@ -5,79 +5,36 @@
 <title>Barbería Elite</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-
 body{
   font-family:'Segoe UI';
-  background:linear-gradient(135deg,#1e1e2f,#3a3a70);
-  height:100vh;
+  background:#1e1e2f;
+  color:white;
   display:flex;
   justify-content:center;
   align-items:center;
+  height:100vh;
 }
 
 .container{
-  width:400px;
   background:white;
-  border-radius:16px;
-  padding:25px;
-  box-shadow:0 20px 50px rgba(0,0,0,0.3);
-}
-
-.logo{text-align:center;font-weight:bold;margin-bottom:10px;}
-.sub{text-align:center;font-size:12px;color:#777;margin-bottom:15px;}
-
-input{
-  width:100%;
-  padding:12px;
-  margin-bottom:10px;
-  border-radius:8px;
-  border:1px solid #ddd;
+  color:black;
+  padding:20px;
+  border-radius:12px;
+  width:350px;
 }
 
 button{
   width:100%;
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  background:#000;
-  color:white;
-  cursor:pointer;
-}
-
-.hora{
-  margin:5px 0;
   padding:10px;
-  border-radius:8px;
+  margin:5px 0;
 }
-
-.libre{background:green;color:white;}
-.ocupado{background:red;color:white;}
-
-.selected{border:3px solid yellow;}
 
 .cita{
-  background:#f2f2f2;
-  padding:10px;
-  border-radius:8px;
-  margin-bottom:5px;
-  display:flex;
-  justify-content:space-between;
-}
-
-.toast{
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  background:black;
-  color:white;
-  padding:10px;
+  background:#eee;
+  padding:8px;
+  margin:5px 0;
   border-radius:6px;
-  opacity:0;
-  transition:0.3s;
 }
-
-.toast.show{opacity:1;}
 </style>
 </head>
 
@@ -85,56 +42,47 @@ button{
 
 <div class="container">
 
-<div class="logo">💈 Barbería Elite</div>
-<div class="sub">Reserva tu turno online</div>
-
 <!-- LOGIN -->
 <div id="loginBox">
+  <h3>Login</h3>
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
   <button onclick="login()">Entrar</button>
 </div>
 
-<!-- APP -->
-<div id="app" style="display:none;">
-
+<!-- CLIENTE -->
+<div id="clientePanel" style="display:none;">
   <h3>Reservar</h3>
 
   <input type="date" id="fecha">
-  <input id="nombre" placeholder="Tu nombre">
+  <input id="nombre" placeholder="Nombre">
 
-  <button onclick="verDisponibilidad()">Ver horarios</button>
-
+  <button onclick="verDisponibilidad()">Ver horas</button>
   <div id="horas"></div>
 
-  <button onclick="confirmarReserva()">RESERVAR</button>
+  <button onclick="reservar()">Reservar</button>
 
-  <h3>Mis citas</h3>
+  <h4>Mis citas</h4>
   <div id="misCitas"></div>
+</div>
 
-  <h3>Agenda del día (barbero)</h3>
+<!-- BARBERO -->
+<div id="barberoPanel" style="display:none;">
+  <h3>Agenda del día</h3>
+
+  <input type="date" id="fechaBarbero">
+  <button onclick="verAgenda()">Ver agenda</button>
+
   <div id="agenda"></div>
-
-  <button onclick="logout()">Salir</button>
-
 </div>
 
 </div>
-
-<div id="toast" class="toast"></div>
 
 <script>
 const API="https://citas-backend-production-6435.up.railway.app/api";
 
-let horaSeleccionada=null;
-
-// 🔔 MENSAJES
-function toast(msg){
-  const t=document.getElementById("toast");
-  t.textContent=msg;
-  t.className="toast show";
-  setTimeout(()=>t.className="toast",3000);
-}
+let token="";
+let horaSeleccionada="";
 
 // LOGIN
 async function login(){
@@ -150,45 +98,42 @@ async function login(){
   const data=await res.json();
 
   if(data.token){
-    localStorage.setItem("token",data.token);
+    token=data.token;
+    localStorage.setItem("token",token);
+
     loginBox.style.display="none";
-    app.style.display="block";
-    verMisCitas();
+
+    // 🔥 DETECTAR BARBERO
+    if(email.value==="barbero@admin.com"){
+      barberoPanel.style.display="block";
+    } else {
+      clientePanel.style.display="block";
+      verMisCitas();
+    }
   }
 }
 
-// VER HORAS
+// CLIENTE
+
 async function verDisponibilidad(){
   const res=await fetch(`${API}/disponibilidad?fecha=${fecha.value}`);
   const data=await res.json();
 
   horas.innerHTML="";
-  horaSeleccionada=null;
 
   data.forEach(h=>{
-    const btn=document.createElement("button");
-    btn.textContent=h.hora;
-    btn.className=`hora ${h.estado}`;
+    const b=document.createElement("button");
+    b.textContent=h.hora;
 
     if(h.estado==="libre"){
-      btn.onclick=()=>{
-        horaSeleccionada=h.hora;
-        document.querySelectorAll(".hora").forEach(b=>b.classList.remove("selected"));
-        btn.classList.add("selected");
-      }
-    } else btn.disabled=true;
+      b.onclick=()=>horaSeleccionada=h.hora;
+    } else b.disabled=true;
 
-    horas.appendChild(btn);
+    horas.appendChild(b);
   });
 }
 
-// CONFIRMAR RESERVA
-async function confirmarReserva(){
-  if(!horaSeleccionada){
-    toast("Selecciona una hora");
-    return;
-  }
-
+async function reservar(){
   const res=await fetch(`${API}/reservar`,{
     method:"POST",
     headers:{
@@ -202,16 +147,11 @@ async function confirmarReserva(){
     })
   });
 
-  const data=await res.json();
+  alert("Reservado");
 
-  toast(data.mensaje || data.error);
-
-  verDisponibilidad();
   verMisCitas();
-  verAgenda();
 }
 
-// MIS CITAS
 async function verMisCitas(){
   const res=await fetch(`${API}/mis-citas`,{
     headers:{ "Authorization":localStorage.getItem("token")}
@@ -222,31 +162,27 @@ async function verMisCitas(){
   misCitas.innerHTML="";
 
   data.forEach(c=>{
-    const div=document.createElement("div");
-    div.className="cita";
-    div.innerHTML=`${c.fecha} - ${c.hora}`;
-    misCitas.appendChild(div);
+    const d=document.createElement("div");
+    d.className="cita";
+    d.textContent=`${c.fecha} ${c.hora}`;
+    misCitas.appendChild(d);
   });
 }
 
-// AGENDA DEL BARBERO
+// BARBERO
+
 async function verAgenda(){
-  const res=await fetch(`${API}/disponibilidad?fecha=${fecha.value}`);
+  const res=await fetch(`${API}/disponibilidad?fecha=${fechaBarbero.value}`);
   const data=await res.json();
 
   agenda.innerHTML="";
 
   data.forEach(h=>{
-    const div=document.createElement("div");
-    div.textContent=`${h.hora} - ${h.estado}`;
-    agenda.appendChild(div);
+    const d=document.createElement("div");
+    d.className="cita";
+    d.textContent=`${h.hora} - ${h.estado}`;
+    agenda.appendChild(d);
   });
-}
-
-// LOGOUT
-function logout(){
-  localStorage.removeItem("token");
-  location.reload();
 }
 </script>
 
