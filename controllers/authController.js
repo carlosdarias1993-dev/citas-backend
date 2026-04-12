@@ -2,7 +2,7 @@ const Usuario = require("../models/Usuario");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// 🆕 REGISTRO
+// REGISTRO
 exports.register = async (req, res) => {
   try {
     const { nombre, email, password, rol } = req.body;
@@ -19,19 +19,20 @@ exports.register = async (req, res) => {
       nombre,
       email,
       password: hashedPassword,
-      rol: rol || "cliente" // 🔥 CLAVE
+      rol: rol || "cliente"
     });
 
     await nuevo.save();
 
-    res.json({ mensaje: "Usuario creado" });
+    res.json({ mensaje: "Usuario creado correctamente" });
 
   } catch (error) {
+    console.error(error); // 🔥 IMPORTANTE
     res.status(500).json({ error: "Error en registro" });
   }
 };
 
-// 🔐 LOGIN
+// LOGIN
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -56,10 +57,11 @@ exports.login = async (req, res) => {
 
     res.json({
       token,
-      rol: usuario.rol // 🔥 LO ENVIAMOS
+      rol: usuario.rol
     });
 
   } catch (error) {
+    console.error(error); // 🔥 CLAVE PARA DEBUG
     res.status(500).json({ error: "Error en login" });
   }
 };
