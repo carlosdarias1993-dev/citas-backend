@@ -1,36 +1,11 @@
 const Reserva = require("../models/Reserva");
 
-// DISPONIBILIDAD
-exports.obtenerDisponibilidad = async (req, res) => {
+// ================= CREAR RESERVA =================
+exports.crearReserva = async (req, res) => {
   try {
-    const { fecha } = req.query;
+    const { nombre, fecha, hora } = req.body;
 
-    const horas = ["09:00","10:00","11:00","12:00","13:00"];
-
-    const reservas = await Reserva.find({ fecha });
-
-    const disponibilidad = horas.map(hora => {
-      const ocupada = reservas.find(r => r.hora === hora);
-
-      return {
-        hora,
-        estado: ocupada ? "ocupado" : "libre"
-      };
-    });
-
-    res.json(disponibilidad);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error disponibilidad" });
-  }
-};
-
-// RESERVAR
-exports.reservar = async (req, res) => {
-  try {
-    const { fecha, hora, nombre } = req.body;
-
+    // Verificar si ya existe esa hora
     const existe = await Reserva.findOne({ fecha, hora });
 
     if (existe) {
@@ -38,9 +13,9 @@ exports.reservar = async (req, res) => {
     }
 
     const nueva = new Reserva({
+      nombre,
       fecha,
       hora,
-      nombre,
       usuario: req.usuario.id
     });
 
@@ -50,11 +25,26 @@ exports.reservar = async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error reservar" });
+    res.status(500).json({ error: "Error al crear reserva" });
   }
 };
 
-// MIS CITAS
+// ================= VER RESERVAS POR FECHA =================
+exports.obtenerReservasPorFecha = async (req, res) => {
+  try {
+    const { fecha } = req.query;
+
+    const reservas = await Reserva.find({ fecha });
+
+    res.json(reservas);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener reservas" });
+  }
+};
+
+// ================= MIS CITAS =================
 exports.misCitas = async (req, res) => {
   try {
     const citas = await Reserva.find({ usuario: req.usuario.id });
@@ -63,21 +53,32 @@ exports.misCitas = async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error citas" });
+    res.status(500).json({ error: "Error al obtener citas" });
   }
 };
 
-// AGENDA
-exports.agenda = async (req, res) => {
+// ================= CANCELAR =================
+exports.cancelarReserva = async (req, res) => {
   try {
-    const { fecha } = req.query;
+    const { id } = req.params;
 
-    const citas = await Reserva.find({ fecha });
+    const reserva = await Reserva.findById(id);
 
-    res.json(citas);
+    if (!reserva) {
+      return res.status(404).json({ error: "No existe" });
+    }
+
+    // Solo el dueño puede borrar
+    if (reserva.usuario.toString() !== req.usuario.id) {
+      return res.status(403).json({ error: "No autorizado" });
+    }
+
+    await Reserva.findByIdAndDelete(id);
+
+    res.json({ mensaje: "Reserva eliminada" });
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error agenda" });
+    res.status(500).json({ error: "Error al eliminar" });
   }
 };

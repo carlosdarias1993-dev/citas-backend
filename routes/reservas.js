@@ -4,16 +4,16 @@ const router = express.Router();
 const reservasController = require("../controllers/reservasController");
 const authMiddleware = require("../middleware/authMiddleware");
 
-// DISPONIBILIDAD
-router.get("/disponibilidad", reservasController.obtenerDisponibilidad);
+// CREAR
+router.post("/", authMiddleware, reservasController.crearReserva);
 
-// RESERVAR
-router.post("/reservar", authMiddleware, reservasController.reservar);
+// VER POR FECHA
+router.get("/", authMiddleware, reservasController.obtenerReservasPorFecha);
 
 // MIS CITAS
 router.get("/mis-citas", authMiddleware, reservasController.misCitas);
 
-// AGENDA
-router.get("/agenda", authMiddleware, reservasController.agenda);
+// CANCELAR
+router.delete("/:id", authMiddleware, reservasController.cancelarReserva);
 
 module.exports = router;

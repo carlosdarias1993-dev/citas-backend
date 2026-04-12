@@ -19,6 +19,7 @@ const adminRoutes = require("./routes/admin");
 app.use("/api/auth", authRoutes);
 app.use("/api", reservasRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/reservas", require("./routes/reservas"));
 
 app.get("/", (req, res) => {
   res.send("API funcionando 🚀");
