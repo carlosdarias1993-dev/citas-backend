@@ -1,33 +1,298 @@
-<!-- SOLO TE PONGO LA PARTE IMPORTANTE MODIFICADA -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reservar cita</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 340px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      box-sizing: border-box;
+    }
+
+    .hora {
+      margin: 5px;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .libre {
+      background: green;
+      color: white;
+    }
+
+    .ocupado {
+      background: red;
+      color: white;
+    }
+
+    .login-box {
+      background: #222;
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+
+    .login-box input {
+      border-radius: 5px;
+      border: none;
+    }
+
+    .login-box button {
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .switch {
+      color: #ccc;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .cita {
+      background: #eee;
+      margin: 5px;
+      padding: 8px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cita button {
+      width: auto;
+      background: red;
+      color: white;
+      border: none;
+      padding: 5px 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- LOGIN -->
+  <div id="loginBox" class="login-box">
+    <h3>Login</h3>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p class="switch" onclick="mostrarRegistro()">¿No tienes cuenta? Regístrate</p>
+  </div>
+
+  <!-- REGISTRO -->
+  <div id="registerBox" class="login-box" style="display:none;">
+    <h3>Registro</h3>
+    <input type="text" id="nombreReg" placeholder="Nombre">
+    <input type="email" id="emailReg" placeholder="Email">
+    <input type="password" id="passwordReg" placeholder="Password">
+    <button onclick="register()">Crear cuenta</button>
+    <p class="switch" onclick="mostrarLogin()">Ya tengo cuenta</p>
+  </div>
+
+  <!-- USUARIO -->
+  <div id="userBox" style="display:none;">
+    <p>✅ Sesión iniciada</p>
+    <button onclick="verMisCitas()">Ver mis citas</button>
+    <button onclick="logout()">Cerrar sesión</button>
+  </div>
+
+  <!-- APP -->
+  <div id="appBox" style="display:none;">
+    <h2>Reservar cita</h2>
+
+    <input type="date" id="fecha">
+    <input type="text" id="nombre" placeholder="Tu nombre">
+
+    <button onclick="verDisponibilidad()">Ver disponibilidad</button>
+
+    <div id="horas"></div>
+
+    <h3>Mis citas</h3>
+    <div id="misCitas"></div>
+  </div>
+
+</div>
 
 <script>
-const API = "https://citas-backend-production-6435.up.railway.app";
+// 🔥 SOLO USAMOS RAILWAY
+const API = "https://citas-backend-production-6435.up.railway.app/api";
 
-// 📋 VER MIS CITAS (ACTUALIZADO)
-async function verMisCitas() {
-  const token = localStorage.getItem("token");
+// 🔄 CAMBIAR VISTAS
+function mostrarRegistro() {
+  loginBox.style.display = "none";
+  registerBox.style.display = "block";
+}
 
-  const res = await fetch(`${API}/mis-citas`, {
-    headers: {
-      "Authorization": token
-    }
+function mostrarLogin() {
+  loginBox.style.display = "block";
+  registerBox.style.display = "none";
+}
+
+// 🆕 REGISTRO
+async function register() {
+  const nombre = nombreReg.value;
+  const email = emailReg.value;
+  const password = passwordReg.value;
+
+  const res = await fetch(`${API}/auth/register`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ nombre, email, password })
   });
 
   const data = await res.json();
 
-  const contenedor = document.getElementById("misCitas");
-  contenedor.innerHTML = "";
+  if (data.mensaje || data._id) {
+    alert("Usuario creado 🔥");
+    mostrarLogin();
+  } else {
+    alert(data.error);
+  }
+}
+
+// 🔐 LOGIN
+async function login() {
+  const emailVal = email.value;
+  const passwordVal = password.value;
+
+  const res = await fetch(`${API}/auth/login`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ email: emailVal, password: passwordVal })
+  });
+
+  const data = await res.json();
+
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+
+    loginBox.style.display = "none";
+    registerBox.style.display = "none";
+    userBox.style.display = "block";
+    appBox.style.display = "block";
+
+    verMisCitas();
+  } else {
+    alert(data.error);
+  }
+}
+
+// 🔓 LOGOUT
+function logout() {
+  localStorage.removeItem("token");
+
+  loginBox.style.display = "block";
+  userBox.style.display = "none";
+  appBox.style.display = "none";
+}
+
+// 🔄 AUTO LOGIN
+window.onload = () => {
+  const token = localStorage.getItem("token");
+
+  if (token) {
+    loginBox.style.display = "none";
+    userBox.style.display = "block";
+    appBox.style.display = "block";
+
+    verMisCitas();
+  }
+};
+
+// 📅 DISPONIBILIDAD
+async function verDisponibilidad() {
+  const fecha = document.getElementById("fecha").value;
+
+  const res = await fetch(`${API}/disponibilidad?fecha=${fecha}`);
+  const data = await res.json();
+
+  horas.innerHTML = "";
+
+  data.forEach(h => {
+    const btn = document.createElement("button");
+    btn.textContent = h.hora;
+    btn.className = `hora ${h.estado}`;
+
+    if (h.estado === "libre") {
+      btn.onclick = () => reservar(fecha, h.hora);
+    } else {
+      btn.disabled = true;
+    }
+
+    horas.appendChild(btn);
+  });
+}
+
+// 🔐 RESERVAR
+async function reservar(fecha, hora) {
+  const nombre = document.getElementById("nombre").value;
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/reservar`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": token
+    },
+    body: JSON.stringify({ fecha, hora, nombre })
+  });
+
+  const data = await res.json();
+
+  alert(data.mensaje || data.error);
+
+  verDisponibilidad();
+  verMisCitas();
+}
+
+// 📋 MIS CITAS
+async function verMisCitas() {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/mis-citas`, {
+    headers: { "Authorization": token }
+  });
+
+  const data = await res.json();
+
+  misCitas.innerHTML = "";
 
   data.forEach(cita => {
     const div = document.createElement("div");
     div.className = "cita";
 
     div.innerHTML = `
-      📅 ${cita.fecha} - ${cita.hora}
+      <span>📅 ${cita.fecha} - ${cita.hora}</span>
       <button onclick="cancelar('${cita._id}')">❌</button>
     `;
 
-    contenedor.appendChild(div);
+    misCitas.appendChild(div);
   });
 }
 
@@ -37,9 +302,7 @@ async function cancelar(id) {
 
   const res = await fetch(`${API}/cancelar/${id}`, {
     method: "DELETE",
-    headers: {
-      "Authorization": token
-    }
+    headers: { "Authorization": token }
   });
 
   const data = await res.json();
@@ -49,3 +312,6 @@ async function cancelar(id) {
   verMisCitas();
 }
 </script>
+
+</body>
+</html>
