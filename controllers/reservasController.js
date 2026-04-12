@@ -1,6 +1,6 @@
 const Reserva = require("../models/Reserva");
 
-// 📅 DISPONIBILIDAD
+// DISPONIBILIDAD
 exports.obtenerDisponibilidad = async (req, res) => {
   try {
     const { fecha } = req.query;
@@ -21,15 +21,15 @@ exports.obtenerDisponibilidad = async (req, res) => {
     res.json(disponibilidad);
 
   } catch (error) {
-    res.status(500).json({ error: "Error obteniendo disponibilidad" });
+    console.error(error);
+    res.status(500).json({ error: "Error disponibilidad" });
   }
 };
 
-// 🔐 RESERVAR
+// RESERVAR
 exports.reservar = async (req, res) => {
   try {
     const { fecha, hora, nombre } = req.body;
-    const usuarioId = req.usuario.id;
 
     const existe = await Reserva.findOne({ fecha, hora });
 
@@ -41,64 +41,43 @@ exports.reservar = async (req, res) => {
       fecha,
       hora,
       nombre,
-      usuario: usuarioId
+      usuario: req.usuario.id
     });
 
     await nueva.save();
 
-    res.json({ mensaje: "Reserva creada 🔥" });
+    res.json({ mensaje: "Reserva creada" });
 
   } catch (error) {
-    res.status(500).json({ error: "Error al reservar" });
+    console.error(error);
+    res.status(500).json({ error: "Error reservar" });
   }
 };
 
-// 📋 MIS CITAS
+// MIS CITAS
 exports.misCitas = async (req, res) => {
   try {
-    const citas = await Reserva.find({ usuario: req.usuario.id })
-      .sort({ fecha: 1, hora: 1 });
+    const citas = await Reserva.find({ usuario: req.usuario.id });
 
     res.json(citas);
 
   } catch (error) {
-    res.status(500).json({ error: "Error obteniendo citas" });
+    console.error(error);
+    res.status(500).json({ error: "Error citas" });
   }
 };
 
-// ❌ CANCELAR
-exports.cancelarCita = async (req, res) => {
-  try {
-    const cita = await Reserva.findById(req.params.id);
-
-    if (!cita) {
-      return res.status(404).json({ error: "Cita no encontrada" });
-    }
-
-    if (cita.usuario.toString() !== req.usuario.id) {
-      return res.status(403).json({ error: "No autorizado" });
-    }
-
-    await Reserva.findByIdAndDelete(req.params.id);
-
-    res.json({ mensaje: "Cita cancelada" });
-
-  } catch (error) {
-    res.status(500).json({ error: "Error al cancelar" });
-  }
-};
-
-// 💈 AGENDA BARBERO (NUEVO)
+// AGENDA
 exports.agenda = async (req, res) => {
   try {
     const { fecha } = req.query;
 
-    const citas = await Reserva.find({ fecha })
-      .sort({ hora: 1 });
+    const citas = await Reserva.find({ fecha });
 
     res.json(citas);
 
   } catch (error) {
-    res.status(500).json({ error: "Error obteniendo agenda" });
+    console.error(error);
+    res.status(500).json({ error: "Error agenda" });
   }
 };
