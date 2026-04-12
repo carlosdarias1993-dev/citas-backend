@@ -16,4 +16,7 @@ router.get("/mis-citas", authMiddleware, reservasController.misCitas);
 // CANCELAR
 router.delete("/cancelar/:id", authMiddleware, reservasController.cancelarCita);
 
+// 💈 AGENDA (NUEVO)
+router.get("/agenda", authMiddleware, reservasController.agenda);
+
 module.exports = router;
