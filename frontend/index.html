@@ -23,6 +23,12 @@ body{
   width:350px;
 }
 
+input{
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+}
+
 button{
   width:100%;
   padding:10px;
@@ -58,12 +64,15 @@ button{
   <input id="nombre" placeholder="Nombre">
 
   <button onclick="verDisponibilidad()">Ver horas</button>
+
   <div id="horas"></div>
 
-  <button onclick="reservar()">Reservar</button>
+  <button onclick="confirmarReserva()">Reservar</button>
 
   <h4>Mis citas</h4>
   <div id="misCitas"></div>
+
+  <button onclick="logout()">Salir</button>
 </div>
 
 <!-- BARBERO -->
@@ -74,6 +83,8 @@ button{
   <button onclick="verAgenda()">Ver agenda</button>
 
   <div id="agenda"></div>
+
+  <button onclick="logout()">Salir</button>
 </div>
 
 </div>
@@ -81,12 +92,11 @@ button{
 <script>
 const API="https://citas-backend-production-6435.up.railway.app/api";
 
-let token="";
-let horaSeleccionada="";
+let horaSeleccionada=null;
 
-// LOGIN
+// 🔐 LOGIN CON ROLES
 async function login(){
-  const res=await fetch(`${API}/auth/login`,{
+  const res = await fetch(`${API}/auth/login`,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
@@ -95,45 +105,61 @@ async function login(){
     })
   });
 
-  const data=await res.json();
+  const data = await res.json();
 
   if(data.token){
-    token=data.token;
-    localStorage.setItem("token",token);
+    localStorage.setItem("token",data.token);
+    localStorage.setItem("rol",data.rol);
 
     loginBox.style.display="none";
 
-    // 🔥 DETECTAR BARBERO
-    if(email.value==="barbero@admin.com"){
+    if(data.rol==="barbero"){
       barberoPanel.style.display="block";
     } else {
       clientePanel.style.display="block";
       verMisCitas();
     }
+
+  } else {
+    alert(data.error);
   }
 }
 
-// CLIENTE
-
+// 📅 DISPONIBILIDAD
 async function verDisponibilidad(){
   const res=await fetch(`${API}/disponibilidad?fecha=${fecha.value}`);
   const data=await res.json();
 
   horas.innerHTML="";
+  horaSeleccionada=null;
 
   data.forEach(h=>{
-    const b=document.createElement("button");
-    b.textContent=h.hora;
+    const btn=document.createElement("button");
+    btn.textContent=h.hora;
 
     if(h.estado==="libre"){
-      b.onclick=()=>horaSeleccionada=h.hora;
-    } else b.disabled=true;
+      btn.onclick=()=>{
+        horaSeleccionada=h.hora;
+        document.querySelectorAll("#horas button").forEach(b=>b.style.background="");
+        btn.style.background="yellow";
+      }
+    } else {
+      btn.disabled=true;
+      btn.style.background="red";
+      btn.style.color="white";
+    }
 
-    horas.appendChild(b);
+    horas.appendChild(btn);
   });
 }
 
-async function reservar(){
+// 🔐 CONFIRMAR RESERVA
+async function confirmarReserva(){
+  if(!horaSeleccionada){
+    alert("Selecciona una hora");
+    return;
+  }
+
   const res=await fetch(`${API}/reservar`,{
     method:"POST",
     headers:{
@@ -147,14 +173,20 @@ async function reservar(){
     })
   });
 
-  alert("Reservado");
+  const data=await res.json();
 
+  alert(data.mensaje || data.error);
+
+  verDisponibilidad();
   verMisCitas();
 }
 
+// 📋 MIS CITAS
 async function verMisCitas(){
   const res=await fetch(`${API}/mis-citas`,{
-    headers:{ "Authorization":localStorage.getItem("token")}
+    headers:{
+      "Authorization":localStorage.getItem("token")
+    }
   });
 
   const data=await res.json();
@@ -162,27 +194,38 @@ async function verMisCitas(){
   misCitas.innerHTML="";
 
   data.forEach(c=>{
-    const d=document.createElement("div");
-    d.className="cita";
-    d.textContent=`${c.fecha} ${c.hora}`;
-    misCitas.appendChild(d);
+    const div=document.createElement("div");
+    div.className="cita";
+    div.textContent=`${c.fecha} - ${c.hora}`;
+    misCitas.appendChild(div);
   });
 }
 
-// BARBERO
-
+// 💈 AGENDA BARBERO
 async function verAgenda(){
-  const res=await fetch(`${API}/disponibilidad?fecha=${fechaBarbero.value}`);
+  const res=await fetch(`${API}/agenda?fecha=${fechaBarbero.value}`,{
+    headers:{
+      "Authorization":localStorage.getItem("token")
+    }
+  });
+
   const data=await res.json();
 
   agenda.innerHTML="";
 
-  data.forEach(h=>{
-    const d=document.createElement("div");
-    d.className="cita";
-    d.textContent=`${h.hora} - ${h.estado}`;
-    agenda.appendChild(d);
+  data.forEach(c=>{
+    const div=document.createElement("div");
+    div.className="cita";
+    div.textContent=`${c.hora} - ${c.nombre}`;
+    agenda.appendChild(div);
   });
+}
+
+// 🔓 LOGOUT
+function logout(){
+  localStorage.removeItem("token");
+  localStorage.removeItem("rol");
+  location.reload();
 }
 </script>
 

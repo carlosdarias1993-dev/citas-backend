@@ -2,45 +2,64 @@ const Usuario = require("../models/Usuario");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-exports.registrar = async (req, res) => {
-  const { nombre, email, password } = req.body;
+// 🆕 REGISTRO
+exports.register = async (req, res) => {
+  try {
+    const { nombre, email, password, rol } = req.body;
 
-  const existe = await Usuario.findOne({ email });
-  if (existe) {
-    return res.status(400).json({ error: "Usuario ya existe" });
+    const existe = await Usuario.findOne({ email });
+
+    if (existe) {
+      return res.status(400).json({ error: "Usuario ya existe" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const nuevo = new Usuario({
+      nombre,
+      email,
+      password: hashedPassword,
+      rol: rol || "cliente" // 🔥 CLAVE
+    });
+
+    await nuevo.save();
+
+    res.json({ mensaje: "Usuario creado" });
+
+  } catch (error) {
+    res.status(500).json({ error: "Error en registro" });
   }
-
-  const hash = await bcrypt.hash(password, 10);
-
-  const usuario = new Usuario({
-    nombre,
-    email,
-    password: hash
-  });
-
-  await usuario.save();
-
-  res.json({ mensaje: "Usuario creado 🔥" });
 };
 
+// 🔐 LOGIN
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const usuario = await Usuario.findOne({ email });
-  if (!usuario) {
-    return res.status(400).json({ error: "Usuario no existe" });
+    const usuario = await Usuario.findOne({ email });
+
+    if (!usuario) {
+      return res.status(400).json({ error: "Usuario no existe" });
+    }
+
+    const valid = await bcrypt.compare(password, usuario.password);
+
+    if (!valid) {
+      return res.status(400).json({ error: "Contraseña incorrecta" });
+    }
+
+    const token = jwt.sign(
+      { id: usuario._id, rol: usuario.rol },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.json({
+      token,
+      rol: usuario.rol // 🔥 LO ENVIAMOS
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: "Error en login" });
   }
-
-  const valido = await bcrypt.compare(password, usuario.password);
-  if (!valido) {
-    return res.status(400).json({ error: "Password incorrecta" });
-  }
-
-  const token = jwt.sign(
-    { id: usuario._id },
-    "secreto123",
-    { expiresIn: "1d" }
-  );
-
-  res.json({ token });
 };
